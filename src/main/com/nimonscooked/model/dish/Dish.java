@@ -1,22 +1,22 @@
 package com.nimonscooked.model.dish;
 
+import java.util.ArrayList;
 import java.util.List;
 import com.nimonscooked.model.Item;
 
-public class Dish {
-    private String name;
+public class Dish extends Item {
     private List<Item> components;
 
     public Dish(String name, List<Item> components) {
-        this.name = name;
-        this.components = components;
-    }
-
-    public String getName() {
-        return name;
+        super(name);
+        this.components = new ArrayList<>(components);
     }
 
     public List<Item> getComponents() {
-        return components;
+        return new ArrayList<>(components);
+    }
+    
+    public void addComponent(Item item) {
+        this.components.add(item);
     }
 }
