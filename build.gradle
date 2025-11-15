@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.nimonscooked'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Kosong dulu buat M1
+}
+
+application {
+    mainClass = 'com.nimonscooked.app.Main'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
