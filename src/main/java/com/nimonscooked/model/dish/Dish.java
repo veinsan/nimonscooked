@@ -3,20 +3,21 @@ package com.nimonscooked.model.dish;
 import java.util.ArrayList;
 import java.util.List;
 import com.nimonscooked.model.Item;
+import com.nimonscooked.model.ingredient.Preparable;
 
 public class Dish extends Item {
-    private List<Item> components;
+    private List<Preparable> components;
 
-    public Dish(String name, List<Item> components) {
+    public Dish(String name, List<Preparable> components) {
         super(name);
         this.components = new ArrayList<>(components);
     }
 
-    public List<Item> getComponents() {
+    public List<Preparable> getComponents() {
         return new ArrayList<>(components);
     }
     
-    public void addComponent(Item item) {
-        this.components.add(item);
+    public void addComponent(Preparable ingredient) {
+        this.components.add(ingredient);
     }
 }
