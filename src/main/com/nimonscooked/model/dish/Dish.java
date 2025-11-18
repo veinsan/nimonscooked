@@ -1,10 +1,12 @@
 package com.nimonscooked.model.dish;
 
+import com.nimonscooked.model.Item;
+import com.nimonscooked.model.ingredient.Preparable;
 import java.util.ArrayList;
 import java.util.List;
-import com.nimonscooked.model.Item;
 
-public class Dish extends Item {
+public class Dish extends Item implements Preparable{
+
     private List<Item> components;
 
     public Dish(String name, List<Item> components) {
@@ -15,7 +17,7 @@ public class Dish extends Item {
     public List<Item> getComponents() {
         return new ArrayList<>(components);
     }
-    
+
     public void addComponent(Item item) {
         this.components.add(item);
     }
