@@ -1,4 +1,3 @@
 package com.nimonscooked.model.utensil;
 
-public class FryingPan extends KitchenUtensil {
-}
+public class FryingPan extends KitchenUtensil implements CookingDevice {}
