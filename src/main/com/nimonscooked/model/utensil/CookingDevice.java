@@ -1,3 +1,4 @@
+package com.nimonscooked.model.utensil;
 public interface CookingDevice {
     boolean isPortable();
     int capacity();
