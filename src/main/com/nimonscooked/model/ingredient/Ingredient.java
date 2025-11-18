@@ -2,10 +2,12 @@ package com.nimonscooked.model.ingredient;
 
 import com.nimonscooked.model.Item;
 
-public class Ingredient extends Item {
+public class Ingredient extends Item implements Preparable {
 
     public enum State {
-        RAW, CHOPPED, COOKED
+        RAW,
+        CHOPPED,
+        COOKED,
     }
 
     private State state;
@@ -13,6 +15,13 @@ public class Ingredient extends Item {
     public Ingredient(String name, State state) {
         super(name);
         this.state = state;
+    }
+
+    public boolean canBeChopped() {
+        if (state == RAW) {
+            return true;
+        }
+        return false;
     }
 
     public State getState() {
