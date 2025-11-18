@@ -3,7 +3,7 @@ package com.nimonscooked.model.utensil;
 import com.nimonscooked.model.Item;
 import com.nimonscooked.model.dish.Dish;
 
-public abstract class KitchenUtensil extends Item {
+public abstract class KitchenUtensil extends Item implements CookingDevice {
 
     protected Dish containedDish;
 

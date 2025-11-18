@@ -1,6 +1,7 @@
 package com.nimonscooked.model.utensil;
 
-public class Plate extends KitchenUtensil {
+public class Plate extends KitchenUtensil implements CookingDevice {
+
     private boolean isClean;
 
     public Plate() {
@@ -15,7 +16,7 @@ public class Plate extends KitchenUtensil {
     public void setClean(boolean clean) {
         this.isClean = clean;
     }
-    
+
     @Override
     public void setContainedDish(com.nimonscooked.model.dish.Dish dish) {
         if (!isClean && dish != null) {
