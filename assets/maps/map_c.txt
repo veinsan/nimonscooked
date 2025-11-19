@@ -1,9 +1,9 @@
 XXXXXAAIAAXXXX
 C..XXA...AX..A
-I..XXCV..CX..P
+I..XXRV..RX..P
 C............S
 I............S
-C..XXC..VCX..A
+C..XXR..VRX..A
 I..XXA...AX..A
 XXXXXA...AX..A
 XXXXXAAIAAX..T
