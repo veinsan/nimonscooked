@@ -1,7 +1,9 @@
-package com.nimonscooked.model.order;
+package com.nimonscooked.manager;
 
 import java.util.LinkedList;
 import java.util.Queue;
+
+import com.nimonscooked.model.order.Order;
 
 public class OrderManager {
     private Queue<Order> orders = new LinkedList<>();

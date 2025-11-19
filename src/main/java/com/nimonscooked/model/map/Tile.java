@@ -1,4 +1,4 @@
-package com.nimonscooked.map;
+package com.nimonscooked.model.map;
 
 import com.nimonscooked.model.station.Station;
 import com.nimonscooked.model.Item;

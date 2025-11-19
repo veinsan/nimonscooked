@@ -1,4 +1,4 @@
-package com.nimonscooked.map;
+package com.nimonscooked.model.map;
 
 public class GameMap {
     private Tile[][] grid;
