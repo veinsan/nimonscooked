@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Classic Burger",
+    "ingredients": ["Bun", "Meat_Cooked"]
+  },
+  {
+    "name": "Cheeseburger",
+    "ingredients": ["Bun", "Meat_Cooked", "Cheese_Chopped"]
+  },
+  {
+    "name": "BLT Burger",
+    "ingredients": ["Bun", "Meat_Cooked", "Tomato_Chopped", "Lettuce_Chopped"]
+  },
+  {
+    "name": "Deluxe Burger",
+    "ingredients": ["Bun", "Meat_Cooked", "Cheese_Chopped", "Tomato_Chopped", "Lettuce_Chopped"]
+  }
+]
