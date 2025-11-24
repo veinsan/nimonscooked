@@ -7,12 +7,13 @@ import com.nimonscooked.model.item.Item;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class KitchenUtensil extends Item implements CookingDevice {
+public abstract class KitchenUtensil extends Item {
 
     protected List<Preparable> contents;
+    protected int cap;
 
     public KitchenUtensil(String name) {
         super(name);
-        contents = new ArrayList<>();
+        contents = new ArrayList<>(cap);
     }
 }
