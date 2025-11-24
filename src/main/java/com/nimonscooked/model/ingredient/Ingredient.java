@@ -1,14 +1,9 @@
-package com.nimonscooked.model.item;
+package com.nimonscooked.model.ingredient;
 
 import com.nimonscooked.interfaces.Preparable;
+import com.nimonscooked.model.item.Item;
 
 public class Ingredient extends Item implements Preparable {
-
-    public enum State {
-        RAW,
-        CHOPPED,
-        COOKED,
-    }
 
     private State state;
 
@@ -31,7 +26,7 @@ public class Ingredient extends Item implements Preparable {
 
     public void chop(){
         if (state == State.RAW){
-            state = State.CHOPPED;
+            setState(State.CHOPPED);
         }
     }
 
