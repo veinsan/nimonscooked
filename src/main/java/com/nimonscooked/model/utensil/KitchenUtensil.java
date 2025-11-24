@@ -12,8 +12,9 @@ public abstract class KitchenUtensil extends Item {
     protected List<Preparable> contents;
     protected int cap;
 
-    public KitchenUtensil(String name) {
+    public KitchenUtensil(String name, int cap) {
         super(name);
+        this.cap = cap;
         contents = new ArrayList<>(cap);
     }
 }
