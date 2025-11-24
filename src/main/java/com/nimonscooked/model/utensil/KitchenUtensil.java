@@ -1,25 +1,18 @@
 package com.nimonscooked.model.utensil;
 
-import com.nimonscooked.model.Item;
-import com.nimonscooked.model.dish.Dish;
+import com.nimonscooked.interfaces.CookingDevice;
+import com.nimonscooked.interfaces.Preparable;
+import com.nimonscooked.model.item.Item;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class KitchenUtensil extends Item implements CookingDevice {
 
-    protected Dish containedDish;
+    protected List<Preparable> contents;
 
     public KitchenUtensil(String name) {
         super(name);
-    }
-
-    public Dish getContainedDish() {
-        return containedDish;
-    }
-
-    public void setContainedDish(Dish dish) {
-        this.containedDish = dish;
-    }
-
-    public boolean isEmpty() {
-        return containedDish == null;
+        contents = new ArrayList<>();
     }
 }
