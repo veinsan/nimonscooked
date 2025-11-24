@@ -1,4 +1,4 @@
-package com.nimonscooked.model;
+package com.nimonscooked.model.item;
 
 public abstract class Item {
     private String name;

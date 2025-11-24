@@ -1,3 +1,5 @@
+package com.nimonscooked.model.ingredient;
+
 public interface Preparable {
     boolean canBeChopped();
     boolean canBeCooked();

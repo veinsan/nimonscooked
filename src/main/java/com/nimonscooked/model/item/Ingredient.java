@@ -1,6 +1,6 @@
-package com.nimonscooked.model.ingredient;
+package com.nimonscooked.model.item;
 
-import com.nimonscooked.model.Item;
+import com.nimonscooked.interfaces.Preparable;
 
 public class Ingredient extends Item implements Preparable {
 
@@ -18,10 +18,25 @@ public class Ingredient extends Item implements Preparable {
     }
 
     public boolean canBeChopped() {
-        if (state == RAW) {
-            return true;
-        }
+        return state == State.RAW;
+    }
+
+    public boolean canBeCooked() {
+        return state != State.COOKED;
+    }
+
+    public boolean canBePlacedOnPlate(){
         return false;
+    }
+
+    public void chop(){
+        if (state == State.RAW){
+            state = State.CHOPPED;
+        }
+    }
+
+    public void cook(){
+        state = State.COOKED;
     }
 
     public State getState() {
