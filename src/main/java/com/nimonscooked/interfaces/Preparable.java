@@ -5,6 +5,7 @@ public interface Preparable {
         RAW,
         CHOPPED,
         COOKED,
+        BURNED,
     }
     boolean canBeChopped();
     boolean canBeCooked();
