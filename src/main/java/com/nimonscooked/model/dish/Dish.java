@@ -1,11 +1,10 @@
 package com.nimonscooked.model.dish;
 
-import com.nimonscooked.model.Item;
-import com.nimonscooked.model.ingredient.Preparable;
-import java.util.ArrayList;
+import com.nimonscooked.model.item.Item;
 import java.util.List;
+import java.util.ArrayList;
 
-public class Dish extends Item implements Preparable{
+public class Dish extends Item{
 
     private List<Item> components;
 
