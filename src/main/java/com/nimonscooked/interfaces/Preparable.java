@@ -4,6 +4,7 @@ public interface Preparable {
     enum State {
         RAW,
         CHOPPED,
+        COOKING,
         COOKED,
         BURNED,
     }
