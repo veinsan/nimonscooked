@@ -1,7 +1,8 @@
 package com.nimonscooked.model.recipe;
 
-import com.nimonscooked.model.Item;
-import com.nimonscooked.model.ingredient.Ingredient;
+import com.nimonscooked.model.item.Item;
+// --- PERBAIKAN IMPORT DI SINI ---
+import com.nimonscooked.model.item.Ingredient; 
 import com.nimonscooked.model.dish.Dish;
 
 import java.util.ArrayList;

@@ -2,35 +2,28 @@ package com.nimonscooked.controller;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
+import com.nimonscooked.controller.command.*;
+// PASTIKAN IMPORT INI ADA
+import com.nimonscooked.model.entity.Chef;
+
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class InputHandler extends InputAdapter {
-    public boolean up, down, left, right;
-    public boolean interact, pickup, switchChef;
+    public Queue<Command> commandQueue = new LinkedList<>();
+    public boolean switchChefRequested = false;
 
     @Override
     public boolean keyDown(int keycode) {
         switch (keycode) {
-            case Input.Keys.W: up = true; break;
-            case Input.Keys.S: down = true; break;
-            case Input.Keys.A: left = true; break;
-            case Input.Keys.D: right = true; break;
-            case Input.Keys.V: interact = true; break;
-            case Input.Keys.C: pickup = true; break;
-            case Input.Keys.X: switchChef = true; break;
-        }
-        return true;
-    }
+            // Gunakan Chef.Direction.[ARAH]
+            case Input.Keys.W: commandQueue.add(new MoveCommand(Chef.Direction.UP)); break;
+            case Input.Keys.S: commandQueue.add(new MoveCommand(Chef.Direction.DOWN)); break;
+            case Input.Keys.A: commandQueue.add(new MoveCommand(Chef.Direction.LEFT)); break;
+            case Input.Keys.D: commandQueue.add(new MoveCommand(Chef.Direction.RIGHT)); break;
 
-    @Override
-    public boolean keyUp(int keycode) {
-        switch (keycode) {
-            case Input.Keys.W: up = false; break;
-            case Input.Keys.S: down = false; break;
-            case Input.Keys.A: left = false; break;
-            case Input.Keys.D: right = false; break;
-            case Input.Keys.V: interact = false; break;
-            case Input.Keys.C: pickup = false; break;
-            case Input.Keys.X: switchChef = false; break;
+            case Input.Keys.V: commandQueue.add(new InteractCommand()); break;
+            case Input.Keys.X: switchChefRequested = true; break;
         }
         return true;
     }

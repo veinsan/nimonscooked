@@ -1,33 +1,21 @@
 package com.nimonscooked.model.station;
 
-import com.nimonscooked.model.Item;
+import com.nimonscooked.model.entity.Chef; // IMPORT SUDAH BENAR
+import com.nimonscooked.model.item.Item;
 
 public abstract class Station {
-    protected final String id;
-    protected Item itemOnStation;
+    protected String id;
+    protected Item item;
 
     public Station(String id) {
         this.id = id;
-        this.itemOnStation = null;
     }
 
-    public String getId() {
-        return id;
-    }
+    // Method wajib diimplementasi subclass
+    public abstract void interact(Chef chef);
 
-    public boolean hasItem() {
-        return itemOnStation != null;
-    }
-
-    public Item getItemOnStation() {
-        return itemOnStation;
-    }
-
-    public void setItemOnStation(Item item) {
-        this.itemOnStation = item;
-    }
-
-    public void clearItem() {
-        this.itemOnStation = null;
-    }
+    public boolean hasItem() { return item != null; }
+    public Item getItem() { return item; }
+    public void setItem(Item item) { this.item = item; }
+    public String getId() { return id; }
 }

@@ -2,13 +2,17 @@ package com.nimonscooked.model.dish;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.nimonscooked.model.Item;
+import com.nimonscooked.model.item.Item;
 
 public class Dish extends Item {
     private final List<Item> components;
 
     public Dish(String name, List<Item> components) {
-        super(name);
+        // --- PERBAIKAN DI SINI ---
+        // Item(String name, String texturePath) membutuhkan path texture.
+        // Kita generate otomatis berdasarkan nama (misal: "Classic Burger" -> "dishes/classic_burger")
+        super(name, "dishes/" + name.toLowerCase().replace(" ", "_"));
+        
         this.components = new ArrayList<>(components);
     }
 

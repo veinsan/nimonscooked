@@ -1,13 +1,15 @@
 package com.nimonscooked.model.utensil;
 
-import com.nimonscooked.model.Item;
+import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.dish.Dish;
 
 public abstract class KitchenUtensil extends Item {
     protected Dish containedDish;
 
-    public KitchenUtensil(String name) {
-        super(name);
+    // --- PERBAIKAN DI SINI ---
+    // Constructor sekarang menerima textureName dan meneruskannya ke super(Item)
+    public KitchenUtensil(String name, String textureName) {
+        super(name, textureName);
         this.containedDish = null;
     }
 

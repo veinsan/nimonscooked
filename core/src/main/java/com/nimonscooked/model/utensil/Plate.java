@@ -1,22 +1,19 @@
 package com.nimonscooked.model.utensil;
 
-import com.nimonscooked.model.dish.Dish;
+// Hapus import Dish yang tidak terpakai (Warning removal)
+// import com.nimonscooked.model.dish.Dish; 
 
 public class Plate extends KitchenUtensil {
     private boolean isClean;
 
     public Plate() {
-        super("plate"); // texture key
+        // Sesuaikan path dengan ResourceManager ("items/plate.png")
+        super("Plate", "items/plate.png"); 
         this.isClean = true;
     }
 
-    public boolean isClean() {
-        return isClean;
-    }
-
-    public void setClean(boolean clean) {
-        this.isClean = clean;
-    }
+    public boolean isClean() { return isClean; }
+    public void setClean(boolean clean) { this.isClean = clean; }
 
     @Override
     public String getDisplayName() {

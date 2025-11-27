@@ -1,21 +1,23 @@
-package com.nimonscooked.model.entity;
+package com.nimonscooked.model.entity; // Package ini HARUS sesuai folder
 
 import com.badlogic.gdx.math.Vector2;
+import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
 import com.nimonscooked.model.util.Position;
 
 public class Chef {
-    public enum Direction { UP, DOWN, LEFT, RIGHT }
+    public enum Direction { UP, DOWN, LEFT, RIGHT } // Enum harus public
+
     public Position position;
     public Vector2 visualPos;
     public Direction direction = Direction.DOWN;
 
-    // --- STATE ANIMASI ---
     public float stateTime = 0f;
     public boolean isMoving = false;
-    public boolean isChopping = false; // TAMBAHAN BARU
-    // ---------------------
+    public boolean isChopping = false;
+
+    private Item inventory;
 
     public Chef(int startCol, int startRow) {
         this.position = new Position(startRow, startCol);
@@ -23,9 +25,7 @@ public class Chef {
     }
 
     public void move(Direction dir, GridMap map) {
-        // Reset chopping kalau bergerak
         isChopping = false;
-
         int targetCol = position.col;
         int targetRow = position.row;
 
@@ -38,7 +38,9 @@ public class Chef {
 
         if (!map.isValid(targetCol, targetRow)) return;
         Tile targetTile = map.getTile(targetCol, targetRow);
-        if (!targetTile.isWalkable()) return;
+
+        // Pastikan Tile punya isWalkable()
+        if (targetTile == null || !targetTile.isWalkable()) return;
 
         position.set(targetRow, targetCol);
         this.direction = dir;
@@ -46,4 +48,6 @@ public class Chef {
 
     public float getX() { return visualPos.x; }
     public float getY() { return visualPos.y; }
+    public void setInventory(Item item) { this.inventory = item; }
+    public Item getInventory() { return inventory; }
 }

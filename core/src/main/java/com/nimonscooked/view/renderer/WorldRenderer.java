@@ -10,167 +10,190 @@ import com.nimonscooked.manager.ResourceManager;
 import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
+import com.nimonscooked.model.station.Station;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class WorldRenderer {
 
     private ResourceManager resourceManager;
     private MapManager mapManager;
+    private List<Renderable> renderList;
 
-    // Animasi Chef
-    private Animation<TextureRegion> chefIdleAnim;
-    private Animation<TextureRegion> chefWalkAnim;
-    private Animation<TextureRegion> chefChopAnim;
+    private Animation<TextureRegion> chefWalkAnim, chefIdleAnim, chefChopAnim;
+    private static final float CHEF_SCALE = 1.8f;
 
-    // Texture Region Khusus (Untuk Crate/Station yang punya animasi)
-//    private TextureRegion crateClosedRegion;
-
-    // Skala Chef (Biar kelihatan besar dan gagah)
-    private static final float CHEF_SCALE = 2.2f;
+    // Interface untuk sorting objek berdasarkan Y
+    private interface Renderable extends Comparable<Renderable> {
+        void render(SpriteBatch batch);
+        float getY();
+    }
 
     public WorldRenderer() {
         this.resourceManager = ResourceManager.getInstance();
         this.mapManager = MapManager.getInstance();
-
+        this.renderList = new ArrayList<>();
         initAnimations();
-//        initStationTextures();
     }
 
     private void initAnimations() {
-        // --- CHEF ANIMATIONS ---
-        Texture walkSheet = resourceManager.getTexture("chef/chef_walk.png");
-        Texture idleSheet = resourceManager.getTexture("chef/chef_idle.png");
-        Texture chopSheet = resourceManager.getTexture("chef/chef_chop.png");
+        Texture walk = resourceManager.getTexture("chef/chef_walk.png");
+        Texture idle = resourceManager.getTexture("chef/chef_idle.png");
+        Texture chop = resourceManager.getTexture("chef/chef_chop.png");
 
-        int FRAME_COLS = 8; // Asumsi semua spritesheet chef punya 8 frame
-        int FRAME_ROWS = 1;
-
-        chefWalkAnim = createAnimation(walkSheet, FRAME_COLS, 0.1f);
-        chefIdleAnim = createAnimation(idleSheet, FRAME_COLS, 0.15f);
-        chefChopAnim = createAnimation(chopSheet, FRAME_COLS, 0.08f); // Chop lebih cepat
+        if(walk != null) chefWalkAnim = createAnimation(walk, 8, 0.1f);
+        if(idle != null) chefIdleAnim = createAnimation(idle, 8, 0.15f);
+        if(chop != null) chefChopAnim = createAnimation(chop, 8, 0.08f);
     }
 
-//    private void initStationTextures() {
-//        // --- CRATE (Peti) ---
-//        // Kita potong frame pertama saja untuk visual default (Tertutup)
-//        Texture crateSheet = resourceManager.getTexture("stations/crate.png");
-//        if (crateSheet != null) {
-//            // Asumsi crate.png adalah strip horizontal 8 frame (seperti yang kamu kirim)
-//            int frameWidth = crateSheet.getWidth() / 8;
-//            int frameHeight = crateSheet.getHeight();
-//
-//            // Ambil frame ke-0 (Peti tertutup)
-//            crateClosedRegion = new TextureRegion(crateSheet, 0, 0, frameWidth, frameHeight);
-//        }
-//    }
-
-    // Helper bikin animasi biar gak copy-paste kode
-    private Animation<TextureRegion> createAnimation(Texture sheet, int cols, float speed) {
-        if (sheet == null) return null;
+    private Animation<TextureRegion> createAnimation(Texture sheet, int cols, float duration) {
         TextureRegion[][] tmp = TextureRegion.split(sheet, sheet.getWidth() / cols, sheet.getHeight());
         TextureRegion[] frames = new TextureRegion[cols];
-        for (int i = 0; i < cols; i++) frames[i] = tmp[0][i];
-        return new Animation<>(speed, frames);
+        System.arraycopy(tmp[0], 0, frames, 0, cols);
+        return new Animation<>(duration, frames);
     }
 
     public void render(SpriteBatch batch) {
-        renderMap(batch);
-        renderChefs(batch);
-    }
-
-    private void renderMap(SpriteBatch batch) {
         GridMap map = mapManager.currentMap;
         if (map == null) return;
 
+        // 1. Render Floor (Lantai selalu di bawah)
+        renderFloor(batch, map);
+
+        // 2. Collect semua objek yang berdiri (Chefs & Stations)
+        renderList.clear();
+        collectStations(map);
+        collectChefs();
+
+        // 3. Sort berdasarkan Y (Objek "jauh" digambar duluan)
+        Collections.sort(renderList);
+
+        // 4. Render Sorted Objects
+        for (Renderable r : renderList) {
+            r.render(batch);
+        }
+    }
+
+    private void renderFloor(SpriteBatch batch, GridMap map) {
+        Texture floorTex = resourceManager.getTexture("stations/floor.png");
         int size = GameConfig.TILE_SIZE;
+        if (floorTex == null) return;
 
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
+                batch.draw(floorTex, x * size, y * size, size, size);
+            }
+        }
+    }
+
+    private void collectStations(GridMap map) {
+        int size = GameConfig.TILE_SIZE;
+        for (int x = 0; x < map.getWidth(); x++) {
+            for (int y = 0; y < map.getHeight(); y++) {
                 Tile tile = map.getTile(x, y);
-                if (tile == null) continue;
+                // Skip lantai kosong dan spawn point, hanya gambar station/tembok
+                if (tile != null && tile.getSymbol() != '.' && tile.getSymbol() != 'V') {
+                    final int col = x;
+                    final int row = y;
 
-                float drawX = x * size;
-                float drawY = y * size;
+                    renderList.add(new Renderable() {
+                        @Override
+                        public float getY() { return row; }
 
-                // 1. Gambar Lantai Dulu (Background)
-                // Agar stasiun transparan atau potongannya gak bolong
-                Texture floorTex = resourceManager.getTexture("stations/floor.png");
-                if (floorTex != null) batch.draw(floorTex, drawX, drawY, size, size);
+                        @Override
+                        public int compareTo(Renderable o) {
+                            return Float.compare(o.getY(), this.getY());
+                        }
 
-                // 2. Gambar Station di Atasnya
-                Texture tex = null;
-                TextureRegion region = null;
+                        @Override
+                        public void render(SpriteBatch batch) {
+                            String texName = getTextureForTile(tile.getSymbol());
+                            Texture tex = resourceManager.getTexture(texName);
+                            if (tex != null) {
+                                batch.draw(tex, col * size, row * size, size, size);
+                            }
 
-                switch (tile.getSymbol()) {
-                    case 'X': tex = resourceManager.getTexture("stations/wall.png"); break;
-                    case 'C': tex = resourceManager.getTexture("stations/cutting_board.png"); break;
-                    case 'R': tex = resourceManager.getTexture("stations/stove.png"); break;
-                    case 'A': tex = resourceManager.getTexture("stations/counter.png"); break;
-
-                    case 'I':
-                        // Khusus Crate: Pakai Region Potongan (Frame 1)
-//                        region = crateClosedRegion;
-                        tex = resourceManager.getTexture("stations/crate.png");
-                        break;
-
-                    case 'P': tex = resourceManager.getTexture("stations/counter.png"); break;
-                    case 'S': tex = resourceManager.getTexture("stations/delivery.png"); break;
-                    case 'W': tex = resourceManager.getTexture("stations/sink.png"); break;
-                    case 'T': tex = resourceManager.getTexture("stations/trash.png"); break;
-                    default: break; // Lantai udah digambar di atas
-                }
-
-                if (region != null) {
-                    batch.draw(region, drawX, drawY, size, size);
-                } else if (tex != null) {
-                    batch.draw(tex, drawX, drawY, size, size);
+                            // Render Item di atas Station (jika ada)
+                            Station s = tile.getStation();
+                            if (s != null && s.hasItem()) {
+                                Texture itemTex = resourceManager.getTexture(s.getItem().getTextureName());
+                                if (itemTex != null) {
+                                    float itemScale = 0.6f;
+                                    float offset = (size - (size * itemScale)) / 2;
+                                    // Gambar item sedikit di atas meja (+10 pixel)
+                                    batch.draw(itemTex, col * size + offset, row * size + offset + 10, size * itemScale, size * itemScale);
+                                }
+                            }
+                        }
+                    });
                 }
             }
         }
     }
 
-    private void renderChefs(SpriteBatch batch) {
-        if (mapManager.chefs == null) return;
-
+    private void collectChefs() {
+        int size = GameConfig.TILE_SIZE;
         for (Chef c : mapManager.chefs) {
-            TextureRegion currentFrame = null;
+            renderList.add(new Renderable() {
+                @Override
+                public float getY() { return c.visualPos.y; }
 
-            // --- LOGIKA PEMILIHAN ANIMASI ---
-            if (c.isChopping) {
-                // Prioritas 1: Memotong (Tombol V ditekan)
-                currentFrame = chefChopAnim.getKeyFrame(c.stateTime, true);
-            } else if (c.isMoving) {
-                // Prioritas 2: Berjalan
-                currentFrame = chefWalkAnim.getKeyFrame(c.stateTime, true);
-            } else {
-                // Default: Diam
-                currentFrame = chefIdleAnim.getKeyFrame(0);
-            }
+                @Override
+                public int compareTo(Renderable o) {
+                    return Float.compare(o.getY(), this.getY());
+                }
 
-            // Warna Chef (Aktif/Pasif)
-            if (c == mapManager.activeChef) {
-                batch.setColor(1, 1, 1, 1); // Normal Cerah
-            } else {
-                batch.setColor(0.5f, 0.5f, 0.5f, 1); // Agak Gelap
-            }
+                @Override
+                public void render(SpriteBatch batch) {
+                    TextureRegion frame = getChefFrame(c);
+                    float scaledSize = size * CHEF_SCALE;
+                    float offsetXY = (scaledSize - size) / 2f;
+                    float offsetYCorrection = size * 0.4f;
 
-            // --- POSISI & SCALING ---
-            float size = GameConfig.TILE_SIZE;
-            float scaledSize = size * CHEF_SCALE;
+                    float drawX = (c.visualPos.x * size) - offsetXY;
+                    float drawY = (c.visualPos.y * size) - offsetXY + offsetYCorrection;
 
-            // Agar Chef tetap di tengah tile walaupun diperbesar:
-            // Geser kiri dan bawah sebanyak setengah dari penambahan ukuran
-            float offsetXY = (scaledSize - size) / 2f;
-            float offsetYCorrection = size * 0.4f;
+                    // Highlight active chef
+                    if (c == mapManager.activeChef) batch.setColor(1, 1, 1, 1);
+                    else batch.setColor(0.6f, 0.6f, 0.6f, 1);
 
-            float drawX = (c.getX() * size) - offsetXY;
-            float drawY = (c.getY() * size) - offsetXY + offsetYCorrection;
+                    if (frame != null) batch.draw(frame, drawX, drawY, scaledSize, scaledSize);
 
-            // Flip jika hadap kiri (Opsional, aktifkan kalau mau)
-            if (currentFrame != null) {
-                batch.draw(currentFrame, drawX, drawY, scaledSize, scaledSize);
-            }
+                    batch.setColor(1, 1, 1, 1);
 
-            batch.setColor(1, 1, 1, 1);
+                    // Render Item Held (Di atas kepala chef)
+                    if (c.getInventory() != null) {
+                        Texture itemTex = resourceManager.getTexture(c.getInventory().getTextureName());
+                        if (itemTex != null) {
+                            float itemSize = size * 0.5f;
+                            batch.draw(itemTex, drawX + size/2, drawY + size, itemSize, itemSize);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private TextureRegion getChefFrame(Chef c) {
+        if (c.isChopping) return chefChopAnim.getKeyFrame(c.stateTime, true);
+        if (c.isMoving) return chefWalkAnim.getKeyFrame(c.stateTime, true);
+        return chefIdleAnim.getKeyFrame(0);
+    }
+
+    private String getTextureForTile(char symbol) {
+        switch (symbol) {
+            case 'X': return "stations/wall.png";
+            case 'C': return "stations/cutting_board.png";
+            case 'R': return "stations/stove.png";
+            case 'A': return "stations/counter.png";
+            case 'I': return "stations/crate.png";
+            case 'P': return "stations/counter.png";
+            case 'S': return "stations/delivery.png";
+            case 'W': return "stations/sink.png";
+            case 'T': return "stations/trash.png";
+            default: return "stations/floor.png";
         }
     }
 }

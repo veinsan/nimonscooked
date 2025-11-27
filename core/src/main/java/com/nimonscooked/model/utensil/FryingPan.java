@@ -1,85 +1,55 @@
 package com.nimonscooked.model.utensil;
 
 import com.nimonscooked.model.ingredient.Preparable;
-import com.nimonscooked.model.ingredient.Ingredient;
-
+import com.nimonscooked.model.item.Ingredient;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FryingPan extends KitchenUtensil implements CookingDevice {
-    
-    private static final int MAX_CAPACITY = 3;
+
+    private static final int MAX_CAPACITY = 3; //
     private final List<Preparable> contents;
-    private boolean isCooking;
 
     public FryingPan() {
-        super("frying_pan"); // texture key
+        super("Frying Pan", "items/pan.png");
         this.contents = new ArrayList<>();
-        this.isCooking = false;
     }
 
-    @Override
-    public boolean isPortable() {
-        return true;
-    }
-
-    @Override
-    public int capacity() {
-        return MAX_CAPACITY;
-    }
+    @Override public boolean isPortable() { return true; }
+    @Override public int capacity() { return MAX_CAPACITY; }
 
     @Override
     public boolean canAccept(Preparable ingredient) {
-        if (contents.size() >= MAX_CAPACITY) {
-            return false;
-        }
-        if (!(ingredient instanceof Ingredient)) {
-            return false;
-        }
-        Ingredient ing = (Ingredient) ingredient;
-        return ing.getState() == Ingredient.State.CHOPPED;
+        if (contents.size() >= MAX_CAPACITY) return false;
+        if (!(ingredient instanceof Ingredient)) return false;
+        // Frying pan hanya terima Chopped [cite: 137]
+        return ((Ingredient)ingredient).getState() == Ingredient.State.CHOPPED;
     }
 
     @Override
     public void addIngredient(Preparable ingredient) {
-        if (canAccept(ingredient)) {
-            contents.add(ingredient);
-        }
+        if (canAccept(ingredient)) contents.add(ingredient);
     }
 
     @Override
     public void startCooking() {
+        // LOGIKA M1: Instant Cooking
+        // Spesifikasi[cite: 110]: "memasak bahan... menjadi COOKED"
         if (!contents.isEmpty()) {
-            isCooking = true;
             for (Preparable ingredient : contents) {
-                ingredient.cook();
+                ingredient.cook(); // Langsung matang seketika
             }
         }
     }
 
-    public List<Preparable> getContents() {
-        return new ArrayList<>(contents);
-    }
+    public List<Preparable> getContents() { return new ArrayList<>(contents); }
+    public boolean isEmpty() { return contents.isEmpty(); }
+    public void clear() { contents.clear(); }
 
-    public boolean isEmpty() {
-        return contents.isEmpty();
-    }
-
-    public void clear() {
-        contents.clear();
-        isCooking = false;
-    }
-
-    @Override
-    public String toString() {
-        return "FryingPan[" + contents.size() + "/" + MAX_CAPACITY + " items]";
-    }
+    @Override public String toString() { return "FryingPan[" + contents.size() + "]"; }
 
     @Override
     public String getDisplayName() {
-        if (contents.isEmpty()) {
-            return "Frying Pan (Empty)";
-        }
-        return "Frying Pan (" + contents.size() + " items)";
+        return contents.isEmpty() ? "Frying Pan (Empty)" : "Frying Pan (" + contents.size() + " items)";
     }
 }
