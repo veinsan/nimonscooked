@@ -10,6 +10,7 @@ import com.nimonscooked.NimonscookedGame;
 import com.nimonscooked.config.GameConfig;
 import com.nimonscooked.controller.InputHandler;
 import com.nimonscooked.controller.PlayerController;
+import com.nimonscooked.manager.AudioManager;
 import com.nimonscooked.manager.GameManager;
 import com.nimonscooked.manager.MapManager;
 import com.nimonscooked.model.entity.Chef;
@@ -26,8 +27,6 @@ public class GameScreen extends ScreenAdapter {
     private OrthographicCamera camera;
     private Viewport viewport;
 
-    private float mapWidthPixel, mapHeightPixel;
-
     public GameScreen() {
         camera = new OrthographicCamera();
         viewport = new ExtendViewport(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT, camera);
@@ -42,15 +41,16 @@ public class GameScreen extends ScreenAdapter {
 
         Gdx.input.setInputProcessor(inputHandler);
 
-        if (MapManager.getInstance().currentMap != null) {
-            mapWidthPixel = MapManager.getInstance().currentMap.getWidth() * GameConfig.TILE_SIZE;
-            mapHeightPixel = MapManager.getInstance().currentMap.getHeight() * GameConfig.TILE_SIZE;
-        }
+        centerCameraOnMap();
 
-        Chef active = MapManager.getInstance().activeChef;
-        if (active != null) {
-            camera.position.set(active.getX() * GameConfig.TILE_SIZE, active.getY() * GameConfig.TILE_SIZE, 0);
-        }
+        AudioManager.getInstance().playMusic("music/bgm_game.mp3");
+    }
+
+    private void centerCameraOnMap() {
+        int mapWidth = MapManager.getInstance().currentMap.getWidth() * GameConfig.TILE_SIZE;
+        int mapHeight = MapManager.getInstance().currentMap.getHeight() * GameConfig.TILE_SIZE;
+        camera.position.set(mapWidth / 2f, mapHeight / 2f, 0);
+        camera.update();
     }
 
     private void updateCamera(float delta) {
@@ -71,6 +71,7 @@ public class GameScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         viewport.update(width, height);
         hudRenderer.resize(width, height);
+        centerCameraOnMap();
     }
 
     @Override
@@ -90,9 +91,11 @@ public class GameScreen extends ScreenAdapter {
         NimonscookedGame.instance.batch.end();
 
         hudRenderer.render();
+
         com.nimonscooked.util.CachePools.freeAll();
     }
 
     @Override
-    public void dispose() {}
+    public void dispose() {
+    }
 }

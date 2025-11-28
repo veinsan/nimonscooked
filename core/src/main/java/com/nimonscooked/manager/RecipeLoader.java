@@ -16,7 +16,7 @@ public class RecipeLoader {
 
     public static List<Recipe> loadRecipes(String jsonPath) {
         List<Recipe> recipes = new ArrayList<>();
-
+        
         FileHandle file = Gdx.files.internal(jsonPath);
         if (!file.exists()) {
             throw new GameLoadException("CRITICAL: Recipe file not found at " + jsonPath);
@@ -28,7 +28,7 @@ public class RecipeLoader {
 
             for (JsonValue recipeJson : root) {
                 if (!recipeJson.has("name") || !recipeJson.has("ingredients")) {
-                    throw new GameLoadException("Invalid recipe format: Missing name or ingredients array.");
+                     throw new GameLoadException("Invalid recipe format: Missing name or ingredients array.");
                 }
 
                 String recipeName = recipeJson.getString("name");
@@ -51,21 +51,25 @@ public class RecipeLoader {
 
     private static Ingredient parseIngredientString(String rawString) {
         String name;
-        Ingredient.State state = Ingredient.State.RAW;
+        Ingredient.State state = Ingredient.State.RAW; 
 
         if (rawString.contains("_")) {
             String[] parts = rawString.split("_");
-            name = parts[0];
-            String stateStr = parts[1].toUpperCase();
+            name = parts[0]; 
+            String stateStr = parts[1].toUpperCase(); 
             try {
                 state = Ingredient.State.valueOf(stateStr);
             } catch (IllegalArgumentException e) {
                 throw new GameLoadException("Unknown ingredient state: " + stateStr + " in " + rawString);
             }
         } else {
-            name = rawString;
+            name = rawString; 
         }
 
-        return new Ingredient(name, "ingredients/" + name.toLowerCase());
+        Ingredient ing = new Ingredient(name, "ingredients/" + name.toLowerCase());
+        
+        ing.setState(state);
+        
+        return ing;
     }
 }

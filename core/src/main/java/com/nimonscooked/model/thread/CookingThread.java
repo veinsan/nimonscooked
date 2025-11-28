@@ -8,7 +8,10 @@ import com.nimonscooked.model.utensil.CookingDevice;
 import java.util.List;
 
 public class CookingThread extends Thread {
+
+    @SuppressWarnings("unused")
     private final CookingDevice device;
+
     private final List<Preparable> ingredients;
     private volatile boolean running = true;
 
@@ -29,7 +32,7 @@ public class CookingThread extends Thread {
 
         try {
             while (running && (System.currentTimeMillis() - startTime < TIME_TO_COOK)) {
-                progress = (float)(System.currentTimeMillis() - startTime) / TIME_TO_COOK;
+                progress = (float) (System.currentTimeMillis() - startTime) / TIME_TO_COOK;
                 Thread.sleep(100);
             }
 
@@ -50,7 +53,7 @@ public class CookingThread extends Thread {
             progress = 0f;
 
             while (running && (System.currentTimeMillis() - startTime < TIME_TO_BURN)) {
-                progress = (float)(System.currentTimeMillis() - startTime) / TIME_TO_BURN;
+                progress = (float) (System.currentTimeMillis() - startTime) / TIME_TO_BURN;
                 Thread.sleep(100);
             }
 
