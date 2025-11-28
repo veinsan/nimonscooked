@@ -5,12 +5,14 @@ public class Order {
     private final String recipeName;
     private final int reward;
     private final int penalty;
+    private float remainingTime;
 
-    public Order(int position, String recipeName, int reward, int penalty) {
+    public Order(int position, String recipeName, int reward, int penalty, int timeLimit) {
         this.position = position;
         this.recipeName = recipeName;
         this.reward = reward;
         this.penalty = penalty;
+        this.remainingTime = timeLimit; //
     }
 
     public int getPosition() {
@@ -38,4 +40,7 @@ public class Order {
         return "Order #" + position + ": " + recipeName +
                " (Reward: +" + reward + ", Penalty: -" + penalty + ")";
     }
+
+    public void decreaseTimer(float delta) { this.remainingTime -= delta; }
+    public float getRemainingTime() { return remainingTime; }
 }

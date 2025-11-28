@@ -11,21 +11,17 @@ import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
 import com.nimonscooked.model.station.Station;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class WorldRenderer {
-
     private ResourceManager resourceManager;
     private MapManager mapManager;
     private List<Renderable> renderList;
-
     private Animation<TextureRegion> chefWalkAnim, chefIdleAnim, chefChopAnim;
     private static final float CHEF_SCALE = 1.8f;
 
-    // Interface untuk sorting objek berdasarkan Y
     private interface Renderable extends Comparable<Renderable> {
         void render(SpriteBatch batch);
         float getY();
@@ -38,16 +34,15 @@ public class WorldRenderer {
         initAnimations();
     }
 
+    // ... (initAnimations & createAnimation SAMA SEPERTI SEBELUMNYA) ...
     private void initAnimations() {
         Texture walk = resourceManager.getTexture("chef/chef_walk.png");
         Texture idle = resourceManager.getTexture("chef/chef_idle.png");
         Texture chop = resourceManager.getTexture("chef/chef_chop.png");
-
         if(walk != null) chefWalkAnim = createAnimation(walk, 8, 0.1f);
         if(idle != null) chefIdleAnim = createAnimation(idle, 8, 0.15f);
         if(chop != null) chefChopAnim = createAnimation(chop, 8, 0.08f);
     }
-
     private Animation<TextureRegion> createAnimation(Texture sheet, int cols, float duration) {
         TextureRegion[][] tmp = TextureRegion.split(sheet, sheet.getWidth() / cols, sheet.getHeight());
         TextureRegion[] frames = new TextureRegion[cols];
@@ -58,29 +53,18 @@ public class WorldRenderer {
     public void render(SpriteBatch batch) {
         GridMap map = mapManager.currentMap;
         if (map == null) return;
-
-        // 1. Render Floor (Lantai selalu di bawah)
         renderFloor(batch, map);
-
-        // 2. Collect semua objek yang berdiri (Chefs & Stations)
         renderList.clear();
         collectStations(map);
         collectChefs();
-
-        // 3. Sort berdasarkan Y (Objek "jauh" digambar duluan)
         Collections.sort(renderList);
-
-        // 4. Render Sorted Objects
-        for (Renderable r : renderList) {
-            r.render(batch);
-        }
+        for (Renderable r : renderList) r.render(batch);
     }
 
     private void renderFloor(SpriteBatch batch, GridMap map) {
         Texture floorTex = resourceManager.getTexture("stations/floor.png");
         int size = GameConfig.TILE_SIZE;
         if (floorTex == null) return;
-
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
                 batch.draw(floorTex, x * size, y * size, size, size);
@@ -93,37 +77,29 @@ public class WorldRenderer {
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
                 Tile tile = map.getTile(x, y);
-                // Skip lantai kosong dan spawn point, hanya gambar station/tembok
                 if (tile != null && tile.getSymbol() != '.' && tile.getSymbol() != 'V') {
                     final int col = x;
                     final int row = y;
-
                     renderList.add(new Renderable() {
-                        @Override
-                        public float getY() { return row; }
-
-                        @Override
-                        public int compareTo(Renderable o) {
-                            return Float.compare(o.getY(), this.getY());
-                        }
-
-                        @Override
-                        public void render(SpriteBatch batch) {
+                        @Override public float getY() { return row; }
+                        @Override public int compareTo(Renderable o) { return Float.compare(o.getY(), this.getY()); }
+                        @Override public void render(SpriteBatch batch) {
                             String texName = getTextureForTile(tile.getSymbol());
                             Texture tex = resourceManager.getTexture(texName);
-                            if (tex != null) {
-                                batch.draw(tex, col * size, row * size, size, size);
-                            }
+                            if (tex != null) batch.draw(tex, col * size, row * size, size, size);
 
-                            // Render Item di atas Station (jika ada)
                             Station s = tile.getStation();
-                            if (s != null && s.hasItem()) {
-                                Texture itemTex = resourceManager.getTexture(s.getItem().getTextureName());
-                                if (itemTex != null) {
-                                    float itemScale = 0.6f;
-                                    float offset = (size - (size * itemScale)) / 2;
-                                    // Gambar item sedikit di atas meja (+10 pixel)
-                                    batch.draw(itemTex, col * size + offset, row * size + offset + 10, size * itemScale, size * itemScale);
+                            if (s != null) {
+                                if(s.hasItem()) {
+                                    Texture itemTex = resourceManager.getTexture(s.getItem().getTextureName());
+                                    if (itemTex != null) batch.draw(itemTex, col*size+10, row*size+20, size*0.6f, size*0.6f);
+                                }
+                                // RENDER BAR (COOKING)
+                                if (s.getItem() instanceof com.nimonscooked.model.utensil.CookingDevice) {
+                                    com.nimonscooked.model.utensil.CookingDevice device = (com.nimonscooked.model.utensil.CookingDevice) s.getItem();
+                                    if (device.isCooking() || device.getProgress() > 0) {
+                                        drawProgressBar(batch, col * size + 12, row * size + size + 15, device.getProgress(), false);
+                                    }
                                 }
                             }
                         }
@@ -137,45 +113,48 @@ public class WorldRenderer {
         int size = GameConfig.TILE_SIZE;
         for (Chef c : mapManager.chefs) {
             renderList.add(new Renderable() {
-                @Override
-                public float getY() { return c.visualPos.y; }
-
-                @Override
-                public int compareTo(Renderable o) {
-                    return Float.compare(o.getY(), this.getY());
-                }
-
-                @Override
-                public void render(SpriteBatch batch) {
+                @Override public float getY() { return c.visualPos.y; }
+                @Override public int compareTo(Renderable o) { return Float.compare(o.getY(), this.getY()); }
+                @Override public void render(SpriteBatch batch) {
                     TextureRegion frame = getChefFrame(c);
                     float scaledSize = size * CHEF_SCALE;
                     float offsetXY = (scaledSize - size) / 2f;
-                    float offsetYCorrection = size * 0.4f;
-
                     float drawX = (c.visualPos.x * size) - offsetXY;
-                    float drawY = (c.visualPos.y * size) - offsetXY + offsetYCorrection;
+                    float drawY = (c.visualPos.y * size) - offsetXY + (size*0.4f);
 
-                    // Highlight active chef
                     if (c == mapManager.activeChef) batch.setColor(1, 1, 1, 1);
                     else batch.setColor(0.6f, 0.6f, 0.6f, 1);
 
                     if (frame != null) batch.draw(frame, drawX, drawY, scaledSize, scaledSize);
-
                     batch.setColor(1, 1, 1, 1);
 
-                    // Render Item Held (Di atas kepala chef)
                     if (c.getInventory() != null) {
                         Texture itemTex = resourceManager.getTexture(c.getInventory().getTextureName());
-                        if (itemTex != null) {
-                            float itemSize = size * 0.5f;
-                            batch.draw(itemTex, drawX + size/2, drawY + size, itemSize, itemSize);
-                        }
+                        if (itemTex != null) batch.draw(itemTex, drawX + size/2, drawY + size, size*0.5f, size*0.5f);
+                    }
+
+                    // RENDER BAR (BUSY)
+                    if (c.isBusy() && c.getCurrentInteraction() != null) {
+                        drawProgressBar(batch, drawX + size/2, drawY + scaledSize, c.getCurrentInteraction().getProgress(), true);
                     }
                 }
             });
         }
     }
 
+    private void drawProgressBar(SpriteBatch batch, float x, float y, float progress, boolean isChefAction) {
+        float width = 40f;
+        float height = 6f;
+        Texture blank = resourceManager.getTexture("stations/wall.png");
+        batch.setColor(0.2f, 0.2f, 0.2f, 1f);
+        batch.draw(blank, x, y, width, height);
+        if (isChefAction) batch.setColor(0f, 0.8f, 1f, 1f);
+        else batch.setColor(0f, 1f, 0f, 1f);
+        batch.draw(blank, x, y, width * progress, height);
+        batch.setColor(1, 1, 1, 1);
+    }
+
+    // ... (getChefFrame & getTextureForTile SAMA SEPERTI SEBELUMNYA) ...
     private TextureRegion getChefFrame(Chef c) {
         if (c.isChopping) return chefChopAnim.getKeyFrame(c.stateTime, true);
         if (c.isMoving) return chefWalkAnim.getKeyFrame(c.stateTime, true);

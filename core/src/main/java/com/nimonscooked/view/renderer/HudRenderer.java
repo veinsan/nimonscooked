@@ -37,27 +37,45 @@ public class HudRenderer {
     public void render() {
         hudCamera.update();
         batch.setProjectionMatrix(hudCamera.combined);
-
         batch.begin();
 
-        // 1. Render Judul/Score
-        font.getData().setScale(1.5f);
-        font.draw(batch, "ORDERS", 20, GameConfig.SCREEN_HEIGHT - 20);
+        // 1. GLOBAL HUD (Top)
+        font.getData().setScale(1.2f);
+        float timer = GameManager.getInstance().getLevelTimer();
+        int minutes = (int) timer / 60;
+        int seconds = (int) timer % 60;
 
-        // 2. Render Daftar Order Aktif
+        String timeStr = String.format("%02d:%02d", minutes, seconds);
+        String scoreStr = "Score: " + GameManager.getInstance().getScore();
+        String failsStr = "Fails: " + GameManager.getInstance().getFailedOrders() + "/5";
+
+        font.setColor(1, 1, 1, 1);
+        font.draw(batch, timeStr, GameConfig.SCREEN_WIDTH / 2f - 20, GameConfig.SCREEN_HEIGHT - 20);
+        font.draw(batch, scoreStr, 20, GameConfig.SCREEN_HEIGHT - 20);
+
+        // Warna merah jika sudah gagal beberapa kali
+        if (GameManager.getInstance().getFailedOrders() > 2) font.setColor(1, 0, 0, 1);
+        font.draw(batch, failsStr, GameConfig.SCREEN_WIDTH - 150, GameConfig.SCREEN_HEIGHT - 20);
+        font.setColor(1, 1, 1, 1); // Reset
+
+        // 2. ORDERS LIST (Left Side)
         List<Order> orders = GameManager.getInstance().orderManager.getActiveOrders();
-        float y = GameConfig.SCREEN_HEIGHT - 60;
+        float y = GameConfig.SCREEN_HEIGHT - 80;
 
-        font.getData().setScale(1.0f);
-        if (orders.isEmpty()) {
-            font.draw(batch, "No Active Orders", 20, y);
-        } else {
-            for (Order order : orders) {
-                String text = order.getRecipeName() + " (" + order.getReward() + " pts)";
-                font.draw(batch, text, 20, y);
-                y -= 30; // Spasi ke bawah
-            }
+        font.getData().setScale(0.9f);
+        for (Order order : orders) {
+            // Tampilkan timer order
+            String timerOrder = String.format("(%ds)", (int)order.getRemainingTime());
+            String text = order.getRecipeName() + " " + timerOrder;
+
+            // Warna order berubah jadi merah jika waktu < 15 detik
+            if (order.getRemainingTime() < 15) font.setColor(1, 0.3f, 0.3f, 1);
+            else font.setColor(1, 1, 1, 1);
+
+            font.draw(batch, text, 20, y);
+            y -= 35;
         }
+        font.setColor(1, 1, 1, 1); // Reset
 
         // 3. Render Controls Hint (Pojok Kanan Bawah)
         String controls = "WASD: Move | V: Interact | X: Switch Chef";

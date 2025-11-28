@@ -4,7 +4,7 @@ I..XXRV..RX..P
 C............S
 I............S
 C..XXR..VRX..A
-I..XXA...AX..A
-XXXXXA...AX..A
+I..AXA...AX..A
+AWWAXA...AX..A
 XXXXXAAIAAX..T
 XXXXXXXXXXXXXX
