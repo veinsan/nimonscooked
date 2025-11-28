@@ -11,6 +11,7 @@ public abstract class InteractionThread extends Thread {
     public InteractionThread(Chef chef, float durationSeconds) {
         this.chef = chef;
         this.durationMs = (long)(durationSeconds * 1000);
+        setName("InteractionThread-" + chef.hashCode());
     }
 
     @Override
@@ -27,13 +28,21 @@ public abstract class InteractionThread extends Thread {
                 onComplete();
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } finally {
             chef.setBusy(false);
             chef.setCurrentInteraction(null);
+            chef.isChopping = false;
         }
     }
 
     public abstract void onComplete();
-    public float getProgress() { return progress; }
-    public void stopInteraction() { running = false; }
+
+    public float getProgress() {
+        return progress;
+    }
+
+    public void stopInteraction() {
+        running = false;
+    }
 }

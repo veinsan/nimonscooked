@@ -16,8 +16,15 @@ public class Oven extends KitchenUtensil implements CookingDevice {
         this.contents = new ArrayList<>();
     }
 
-    @Override public boolean isPortable() { return false; }
-    @Override public int capacity() { return MAX_CAPACITY; }
+    @Override
+    public boolean isPortable() {
+        return false;
+    }
+
+    @Override
+    public int capacity() {
+        return MAX_CAPACITY;
+    }
 
     @Override
     public boolean canAccept(Preparable ingredient) {
@@ -30,7 +37,9 @@ public class Oven extends KitchenUtensil implements CookingDevice {
 
     @Override
     public void addIngredient(Preparable ingredient) {
-        if (canAccept(ingredient)) contents.add(ingredient);
+        if (canAccept(ingredient)) {
+            contents.add(ingredient);
+        }
     }
 
     @Override
@@ -52,16 +61,15 @@ public class Oven extends KitchenUtensil implements CookingDevice {
         return (cookingThread != null) ? cookingThread.getProgress() : 0f;
     }
 
-    public List<Preparable> getContents() { return new ArrayList<>(contents); }
-    public boolean isEmpty() { return contents.isEmpty(); }
+    public List<Preparable> getContents() {
+        return new ArrayList<>(contents);
+    }
 
     @Override
     public void clear() {
         super.clear();
         contents.clear();
     }
-
-    @Override public String toString() { return "Oven[" + contents.size() + "]"; }
 
     @Override
     public String getDisplayName() {

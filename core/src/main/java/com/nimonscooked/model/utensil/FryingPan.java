@@ -2,7 +2,7 @@ package com.nimonscooked.model.utensil;
 
 import com.nimonscooked.model.ingredient.Preparable;
 import com.nimonscooked.model.item.Ingredient;
-import com.nimonscooked.model.thread.CookingThread; // Import Thread
+import com.nimonscooked.model.thread.CookingThread;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,8 +16,15 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
         this.contents = new ArrayList<>();
     }
 
-    @Override public boolean isPortable() { return true; }
-    @Override public int capacity() { return MAX_CAPACITY; }
+    @Override
+    public boolean isPortable() {
+        return true;
+    }
+
+    @Override
+    public int capacity() {
+        return MAX_CAPACITY;
+    }
 
     @Override
     public boolean canAccept(Preparable ingredient) {
@@ -29,23 +36,42 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
 
     @Override
     public void addIngredient(Preparable ingredient) {
-        if (canAccept(ingredient)) contents.add(ingredient);
+        if (canAccept(ingredient)) {
+            contents.add(ingredient);
+            updateTexture();
+        }
     }
 
-    // --- IMPLEMENTASI LOGIC M2 (THREADING) ---
+    private void updateTexture() {
+        if (contents.isEmpty()) {
+            this.textureName = "items/pan.png";
+        } else {
+            boolean hasCooked = false;
+            for (Preparable p : contents) {
+                if (p instanceof Ingredient) {
+                    Ingredient ing = (Ingredient) p;
+                    if (ing.getState() == Ingredient.State.COOKED) {
+                        hasCooked = true;
+                        break;
+                    }
+                }
+            }
+            if (hasCooked) {
+                this.textureName = "items/pan_meat_cooked.png";
+            } else {
+                this.textureName = "items/pan_meat.png";
+            }
+        }
+    }
 
     @Override
     public void startCooking() {
         if (contents.isEmpty()) return;
-
-        // Jika thread belum jalan, buat baru
         if (cookingThread == null || !cookingThread.isAlive()) {
             cookingThread = new CookingThread(this, contents);
             cookingThread.start();
         }
     }
-
-    // stopCooking() sudah dihandle di parent class KitchenUtensil
 
     @Override
     public boolean isCooking() {
@@ -54,24 +80,19 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
 
     @Override
     public float getProgress() {
-        if (cookingThread != null) {
-            return cookingThread.getProgress();
-        }
-        return 0f;
+        return (cookingThread != null) ? cookingThread.getProgress() : 0f;
     }
 
-    // -----------------------------------------
-
-    public List<Preparable> getContents() { return new ArrayList<>(contents); }
-    public boolean isEmpty() { return contents.isEmpty(); }
+    public List<Preparable> getContents() {
+        return new ArrayList<>(contents);
+    }
 
     @Override
     public void clear() {
-        super.clear(); // Stop thread via parent
+        super.clear();
         contents.clear();
+        updateTexture();
     }
-
-    @Override public String toString() { return "FryingPan[" + contents.size() + "]"; }
 
     @Override
     public String getDisplayName() {

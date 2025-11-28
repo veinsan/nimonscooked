@@ -2,12 +2,10 @@ package com.nimonscooked.model.utensil;
 
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.dish.Dish;
-import com.nimonscooked.model.thread.CookingThread; // Import Thread
+import com.nimonscooked.model.thread.CookingThread;
 
 public abstract class KitchenUtensil extends Item {
     protected Dish containedDish;
-
-    // FIELD BARU UNTUK M2: Menyimpan status memasak
     protected CookingThread cookingThread;
 
     public KitchenUtensil(String name, String textureName) {
@@ -29,10 +27,9 @@ public abstract class KitchenUtensil extends Item {
 
     public void clear() {
         this.containedDish = null;
-        stopCooking(); // Pastikan stop masak saat dibersihkan
+        stopCooking();
     }
 
-    // Helper untuk menghentikan thread dengan aman
     public void stopCooking() {
         if (cookingThread != null && cookingThread.isAlive()) {
             cookingThread.stopCooking();

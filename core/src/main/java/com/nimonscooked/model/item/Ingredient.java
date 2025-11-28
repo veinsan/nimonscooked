@@ -1,11 +1,9 @@
-package com.nimonscooked.model.item; // Package sudah benar
+package com.nimonscooked.model.item;
 
 import com.nimonscooked.model.ingredient.Preparable;
 
-// Tidak perlu import Item karena berada di package yang sama
-
 public class Ingredient extends Item implements Preparable {
-    
+
     public enum State { RAW, CHOPPED, COOKED, BURNT }
 
     private State state;
@@ -19,12 +17,14 @@ public class Ingredient extends Item implements Preparable {
     }
 
     public Ingredient(Ingredient other) {
-        this(other.getName(), other.baseTexture); // Gunakan getter getName()
+        this(other.getName(), other.baseTexture);
         this.state = other.state;
         updateTexture();
     }
 
-    public State getState() { return state; }
+    public State getState() {
+        return state;
+    }
 
     public void setState(State newState) {
         this.state = newState;
@@ -32,52 +32,65 @@ public class Ingredient extends Item implements Preparable {
     }
 
     private void updateTexture() {
+        String lowerName = this.name.toLowerCase();
         switch (state) {
-            case RAW: 
-                // Field 'name' dan 'textureName' diwarisi dari Item (protected)
-                if (this.name.equalsIgnoreCase("Meat")) {
+            case RAW:
+                if (lowerName.equals("meat")) {
                     this.textureName = baseTexture + "_raw.png";
                 } else {
                     this.textureName = baseTexture + ".png";
                 }
                 break;
-            case CHOPPED: 
-                this.textureName = baseTexture + "_chopped.png"; 
+            case CHOPPED:
+                this.textureName = baseTexture + "_chopped.png";
                 break;
-            case COOKED: 
-                this.textureName = baseTexture + "_cooked.png"; 
+            case COOKED:
+                this.textureName = baseTexture + "_cooked.png";
                 break;
-            case BURNT: 
-                this.textureName = baseTexture + "_burnt.png"; 
+            case BURNT:
+                this.textureName = baseTexture + "_burnt.png";
                 break;
         }
     }
 
-    // --- Implementasi Interface Preparable ---
-
     @Override
     public boolean canBeChopped() {
-        return state == State.RAW && (name.equalsIgnoreCase("Tomato") || name.equalsIgnoreCase("Lettuce") || name.equalsIgnoreCase("Cheese"));
+        if (state != State.RAW) return false;
+        String lowerName = name.toLowerCase();
+        return lowerName.equals("tomato") || 
+               lowerName.equals("lettuce") || 
+               lowerName.equals("cheese") || 
+               lowerName.equals("meat");
     }
 
     @Override
     public boolean canBeCooked() {
-        return (state == State.RAW || state == State.CHOPPED) && (name.equalsIgnoreCase("Meat") || name.equalsIgnoreCase("Bun"));
+        if (state == State.COOKED || state == State.BURNT) return false;
+        String lowerName = name.toLowerCase();
+        return lowerName.equals("meat");
     }
 
     @Override
     public boolean canBePlacedOnPlate() {
-        return state == State.COOKED || state == State.CHOPPED || (name.equalsIgnoreCase("Bun") && state == State.RAW);
+        String lowerName = name.toLowerCase();
+        if (lowerName.equals("bun")) {
+            return state == State.RAW;
+        }
+        return state == State.COOKED || state == State.CHOPPED;
     }
 
     @Override
     public void chop() {
-        if (canBeChopped()) setState(State.CHOPPED);
+        if (canBeChopped()) {
+            setState(State.CHOPPED);
+        }
     }
 
     @Override
     public void cook() {
-        if (canBeCooked()) setState(State.COOKED);
+        if (canBeCooked()) {
+            setState(State.COOKED);
+        }
     }
 
     @Override

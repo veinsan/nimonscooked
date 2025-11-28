@@ -1,14 +1,13 @@
 package com.nimonscooked.model.entity;
 
 import com.badlogic.gdx.math.Vector2;
+import com.nimonscooked.manager.MapManager;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
-import com.nimonscooked.model.station.Station;
-import com.nimonscooked.model.util.Position;
 import com.nimonscooked.model.thread.InteractionThread;
-
+import com.nimonscooked.model.util.Position;
 import java.util.List;
 
 public class Chef {
@@ -23,12 +22,9 @@ public class Chef {
     public boolean isChopping = false;
 
     private Item inventory;
-
-    // M2 Features
     private boolean isBusy = false;
     private InteractionThread currentInteraction;
 
-    // Bonus Features
     private float dashCooldownTimer = 0f;
     private static final float DASH_COOLDOWN = 2.0f;
 
@@ -38,11 +34,13 @@ public class Chef {
     }
 
     public void update(float delta) {
-        if (dashCooldownTimer > 0) dashCooldownTimer -= delta;
+        if (dashCooldownTimer > 0) {
+            dashCooldownTimer -= delta;
+        }
     }
 
     public void move(Direction dir, GridMap map) {
-        if (isBusy) return; // Locked when busy
+        if (isBusy) return;
 
         isChopping = false;
         int targetCol = position.col;
@@ -60,11 +58,12 @@ public class Chef {
 
         if (targetTile == null || !targetTile.isWalkable()) return;
 
+        if (map.isOccupiedByChef(targetCol, targetRow)) return;
+
         position.set(targetRow, targetCol);
         this.direction = dir;
     }
 
-    // --- BONUS: DASH ---
     public void dash(Direction dir, GridMap map) {
         if (isBusy || dashCooldownTimer > 0) return;
 
@@ -80,25 +79,28 @@ public class Chef {
         int targetCol = position.col;
         int targetRow = position.row;
 
-        for(int i=1; i<=3; i++) { // Dash 3 tiles
+        for (int i = 1; i <= 3; i++) {
             int checkCol = position.col + (dCol * i);
             int checkRow = position.row + (dRow * i);
-            if(map.isValid(checkCol, checkRow)) {
+            if (map.isValid(checkCol, checkRow)) {
                 Tile t = map.getTile(checkCol, checkRow);
-                if(t != null && t.isWalkable() && !map.isOccupiedByChef(checkCol, checkRow)) {
+                if (t != null && t.isWalkable() && !map.isOccupiedByChef(checkCol, checkRow)) {
                     targetCol = checkCol;
                     targetRow = checkRow;
-                } else break;
-            } else break;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
         }
 
-        if(targetCol != position.col || targetRow != position.row) {
+        if (targetCol != position.col || targetRow != position.row) {
             position.set(targetRow, targetCol);
             dashCooldownTimer = DASH_COOLDOWN;
         }
     }
 
-    // --- BONUS: THROW ---
     public void throwItem(GridMap map, List<Chef> allChefs) {
         if (inventory == null || !(inventory instanceof Ingredient)) return;
         Ingredient ing = (Ingredient) inventory;
@@ -117,16 +119,15 @@ public class Chef {
         boolean caught = false;
         Chef catcher = null;
 
-        for(int i=1; i<=4; i++) { // Throw 4 tiles
+        for (int i = 1; i <= 4; i++) {
             int checkCol = position.col + (dCol * i);
             int checkRow = position.row + (dRow * i);
 
-            if(!map.isValid(checkCol, checkRow)) break;
+            if (!map.isValid(checkCol, checkRow)) break;
 
             Tile t = map.getTile(checkCol, checkRow);
-            if(t != null && !t.isWalkable()) {
-                // Hit station
-                if(t.getStation() != null && !t.getStation().hasItem()) {
+            if (t != null && !t.isWalkable()) {
+                if (t.getStation() != null && !t.getStation().hasItem()) {
                     t.getStation().setItem(inventory);
                     setInventory(null);
                     return;
@@ -134,17 +135,16 @@ public class Chef {
                 break;
             }
 
-            // Check Chef Catch
-            for(Chef c : allChefs) {
-                if(c != this && c.position.col == checkCol && c.position.row == checkRow) {
-                    if(c.getInventory() == null) {
+            for (Chef c : allChefs) {
+                if (c != this && c.position.col == checkCol && c.position.row == checkRow) {
+                    if (c.getInventory() == null) {
                         catcher = c;
                         caught = true;
                     }
                     break;
                 }
             }
-            if(caught) break;
+            if (caught) break;
 
             targetCol = checkCol;
             targetRow = checkRow;
@@ -153,14 +153,26 @@ public class Chef {
         Item thrownItem = inventory;
         setInventory(null);
 
-        if(caught && catcher != null) {
+        if (caught && catcher != null) {
             catcher.setInventory(thrownItem);
         }
-        // Note: Jika jatuh di lantai, untuk sekarang hilang (atau implementasi item on floor nanti)
     }
 
-    public boolean isBusy() { return isBusy; }
-    public void setBusy(boolean busy) { this.isBusy = busy; }
+    public boolean canDash() {
+        return dashCooldownTimer <= 0 && !isBusy;
+    }
+
+    public float getDashCooldown() {
+        return Math.max(0, dashCooldownTimer);
+    }
+
+    public boolean isBusy() {
+        return isBusy;
+    }
+
+    public void setBusy(boolean busy) {
+        this.isBusy = busy;
+    }
 
     public void setCurrentInteraction(InteractionThread thread) {
         this.currentInteraction = thread;
@@ -176,8 +188,19 @@ public class Chef {
         }
     }
 
-    public float getX() { return visualPos.x; }
-    public float getY() { return visualPos.y; }
-    public void setInventory(Item item) { this.inventory = item; }
-    public Item getInventory() { return inventory; }
+    public float getX() {
+        return visualPos.x;
+    }
+
+    public float getY() {
+        return visualPos.y;
+    }
+
+    public void setInventory(Item item) {
+        this.inventory = item;
+    }
+
+    public Item getInventory() {
+        return inventory;
+    }
 }
