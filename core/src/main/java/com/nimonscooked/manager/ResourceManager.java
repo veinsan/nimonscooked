@@ -35,7 +35,6 @@ public class ResourceManager implements Disposable {
         loadTexture("ui/key_1.png");
         loadTexture("ui/key_e.png");
         loadTexture("ui/key_f.png");
-        loadTexture("ui/a.png");
 
         loadTexture("chef/chef_idle_down.png");
         loadTexture("chef/chef_idle_up.png");
@@ -43,7 +42,6 @@ public class ResourceManager implements Disposable {
         loadTexture("chef/chef_walk_down.png");
         loadTexture("chef/chef_walk_up.png");
         loadTexture("chef/chef_walk_side.png");
-        loadTexture("chef/chef_chop.png");
 
         loadTexture("stations/floor.png");
         loadTexture("stations/wall.png");
@@ -93,7 +91,6 @@ public class ResourceManager implements Disposable {
         loadSound("sfx/chop.mp3");
         loadSound("sfx/fry.mp3");
         loadSound("sfx/catch.mp3");
-
         loadSound("sfx/delivery_success.wav");
         loadSound("sfx/delivery_fail.wav");
         loadSound("sfx/alarm.wav");
@@ -121,24 +118,35 @@ public class ResourceManager implements Disposable {
 
     public Texture getTexture(String fileName) {
         String fullPath = TEXTURE_ROOT + fileName;
-        if (assetManager.isLoaded(fullPath)) return assetManager.get(fullPath, Texture.class);
+        if (assetManager.isLoaded(fullPath)) {
+            return assetManager.get(fullPath, Texture.class);
+        }
         return null;
     }
 
     public Music getMusic(String fileName) {
         String fullPath = AUDIO_ROOT + fileName;
-        if (assetManager.isLoaded(fullPath)) return assetManager.get(fullPath, Music.class);
+        if (assetManager.isLoaded(fullPath)) {
+            return assetManager.get(fullPath, Music.class);
+        }
         return null;
     }
 
     public Sound getSound(String fileName) {
         String fullPath = AUDIO_ROOT + fileName;
-        if (assetManager.isLoaded(fullPath)) return assetManager.get(fullPath, Sound.class);
+        if (assetManager.isLoaded(fullPath)) {
+            return assetManager.get(fullPath, Sound.class);
+        }
         return null;
     }
 
-    public Skin getSkin() { return assetManager.get(UI_SKIN_PATH, Skin.class); }
-    public BitmapFont getCustomFont() { return assetManager.get(CUSTOM_FONT_PATH, BitmapFont.class); }
+    public Skin getSkin() {
+        return assetManager.get(UI_SKIN_PATH, Skin.class);
+    }
+
+    public BitmapFont getCustomFont() {
+        return assetManager.get(CUSTOM_FONT_PATH, BitmapFont.class);
+    }
 
     @Override
     public void dispose() {
