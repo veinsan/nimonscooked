@@ -10,7 +10,9 @@ import com.nimonscooked.model.utensil.Plate;
 import com.nimonscooked.model.dish.Dish;
 
 public class ServingCounter extends Station {
-    public ServingCounter(String id) { super(id); }
+    public ServingCounter(String id) {
+        super(id);
+    }
 
     @Override
     public void interact(Chef chef) {
@@ -21,11 +23,11 @@ public class ServingCounter extends Station {
                 Dish dish = plate.getContainedDish();
                 int score = GameManager.getInstance().orderManager.submitOrder(dish);
 
-                if(score > 0) AudioManager.getInstance().playSound("sfx/delivery_success.wav");
+                if (score > 0) AudioManager.getInstance().playSound("sfx/delivery_success.wav");
                 else AudioManager.getInstance().playSound("sfx/delivery_fail.wav");
 
-                chef.setInventory(null); // Hilang dari tangan
-                startPlateReturnTimer(); // Balik 10 detik lagi
+                chef.setInventory(null);
+                startPlateReturnTimer();
             }
         }
     }
@@ -33,16 +35,14 @@ public class ServingCounter extends Station {
     private void startPlateReturnTimer() {
         new Thread(() -> {
             try {
-                Thread.sleep(10000); // 10 Detik
-                // Cari Plate Storage
-                for(Station s : MapManager.getInstance().getAllStations()) {
-                    if(s instanceof PlateStorage) {
-                        // Perlu Gdx.app.postRunnable untuk operasi thread-safe di libgdx
-                        ((PlateStorage)s).returnDirtyPlate();
+                Thread.sleep(10000);
+                for (Station s : MapManager.getInstance().getAllStations()) {
+                    if (s instanceof PlateStorage) {
+                        ((PlateStorage) s).returnDirtyPlate();
                         break;
                     }
                 }
-            } catch (Exception e) {}
+            } catch (Exception ignored) {}
         }).start();
     }
 }

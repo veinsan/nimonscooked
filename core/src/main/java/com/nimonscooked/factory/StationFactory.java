@@ -4,10 +4,12 @@ import com.nimonscooked.manager.RecipeLoader;
 import com.nimonscooked.model.recipe.Recipe;
 import com.nimonscooked.model.station.*;
 import java.util.List;
+import java.util.ArrayList;
 
 public class StationFactory {
 
     private static List<Recipe> cachedRecipes;
+    private static final String[] INGREDIENTS_MAP_C = { "Bun", "Meat", "Cheese", "Tomato", "Lettuce" };
 
     public static void initializeRecipes(String recipePath) {
         cachedRecipes = RecipeLoader.loadRecipes(recipePath);
@@ -19,7 +21,7 @@ public class StationFactory {
         switch (symbol) {
             case 'C': return new CuttingStation(id);
             case 'R': return new CookingStation(id);
-            case 'A': return new AssemblyStation(id, cachedRecipes != null ? cachedRecipes : List.of());
+            case 'A': return new AssemblyStation(id, cachedRecipes != null ? cachedRecipes : new ArrayList<>());
             case 'S': return new ServingCounter(id);
             case 'W': return new WashingStation(id);
             case 'P': return new PlateStorage(id);
@@ -30,22 +32,9 @@ public class StationFactory {
     }
 
     private static IngredientStorage createIngredientStorage(String id, int col, int row) {
-        if (row == 0) {
-            if (col == 1) return new IngredientStorage(id, "Lettuce");
-            if (col == 8) return new IngredientStorage(id, "Bun");
-        } else if (row == 1 || row == 2) {
-            if (col == 0) return new IngredientStorage(id, "Lettuce");
-            if (col == 13) return new IngredientStorage(id, "Tomato");
-        } else if (row == 3 || row == 4) {
-            if (col == 0) return new IngredientStorage(id, "Cheese");
-            if (col == 13) return new IngredientStorage(id, "Tomato");
-        } else if (row == 6) {
-            if (col == 0) return new IngredientStorage(id, "Cheese");
-            if (col == 13) return new IngredientStorage(id, "Tomato");
-        } else if (row == 8) {
-            if (col == 8) return new IngredientStorage(id, "Bun");
-        }
-        return new IngredientStorage(id, "Meat");
+        int index = (col + row) % INGREDIENTS_MAP_C.length;
+        String ingredientName = INGREDIENTS_MAP_C[index];
+        return new IngredientStorage(id, ingredientName);
     }
 
     public static boolean isStationSymbol(char symbol) {

@@ -57,9 +57,9 @@ public class Ingredient extends Item implements Preparable {
     public boolean canBeChopped() {
         if (state != State.RAW) return false;
         String lowerName = name.toLowerCase();
-        return lowerName.equals("tomato") || 
-               lowerName.equals("lettuce") || 
-               lowerName.equals("cheese") || 
+        return lowerName.equals("tomato") ||
+               lowerName.equals("lettuce") ||
+               lowerName.equals("cheese") ||
                lowerName.equals("meat");
     }
 

@@ -10,9 +10,9 @@ import com.nimonscooked.NimonscookedGame;
 import com.nimonscooked.config.GameConfig;
 import com.nimonscooked.controller.InputHandler;
 import com.nimonscooked.controller.PlayerController;
-import com.nimonscooked.manager.AudioManager; // Import AudioManager
 import com.nimonscooked.manager.GameManager;
 import com.nimonscooked.manager.MapManager;
+import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.view.renderer.WorldRenderer;
 import com.nimonscooked.view.renderer.HudRenderer;
 
@@ -26,32 +26,44 @@ public class GameScreen extends ScreenAdapter {
     private OrthographicCamera camera;
     private Viewport viewport;
 
+    private float mapWidthPixel, mapHeightPixel;
+
     public GameScreen() {
         camera = new OrthographicCamera();
         viewport = new ExtendViewport(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT, camera);
-
         viewport.apply();
-        // Zoom kamera
-        camera.zoom = 0.5f;
+        camera.zoom = 0.6f;
 
-        // Init Renderers
-        this.worldRenderer = new WorldRenderer();
-        this.hudRenderer = new HudRenderer(NimonscookedGame.instance.batch);
+        worldRenderer = new WorldRenderer();
+        hudRenderer = new HudRenderer(NimonscookedGame.instance.batch);
 
-        this.inputHandler = new InputHandler();
-        this.playerController = new PlayerController(inputHandler);
+        inputHandler = new InputHandler();
+        playerController = new PlayerController(inputHandler);
 
         Gdx.input.setInputProcessor(inputHandler);
-        centerCameraOnMap();
 
-        // --- FIX: PANGGIL MUSIK DI SINI (DI DALAM KURUNG KURAWAL CONSTRUCTOR) ---
-        AudioManager.getInstance().playMusic("music/bgm_game.mp3");
+        if (MapManager.getInstance().currentMap != null) {
+            mapWidthPixel = MapManager.getInstance().currentMap.getWidth() * GameConfig.TILE_SIZE;
+            mapHeightPixel = MapManager.getInstance().currentMap.getHeight() * GameConfig.TILE_SIZE;
+        }
+
+        Chef active = MapManager.getInstance().activeChef;
+        if (active != null) {
+            camera.position.set(active.getX() * GameConfig.TILE_SIZE, active.getY() * GameConfig.TILE_SIZE, 0);
+        }
     }
 
-    private void centerCameraOnMap() {
-        int mapWidth = MapManager.getInstance().currentMap.getWidth() * GameConfig.TILE_SIZE;
-        int mapHeight = MapManager.getInstance().currentMap.getHeight() * GameConfig.TILE_SIZE;
-        camera.position.set(mapWidth / 2f, mapHeight / 2f, 0);
+    private void updateCamera(float delta) {
+        Chef activeChef = MapManager.getInstance().activeChef;
+        if (activeChef == null) return;
+
+        float targetX = activeChef.getX() * GameConfig.TILE_SIZE;
+        float targetY = activeChef.getY() * GameConfig.TILE_SIZE;
+
+        float lerpSpeed = 5f * delta;
+        camera.position.x += (targetX - camera.position.x) * lerpSpeed;
+        camera.position.y += (targetY - camera.position.y) * lerpSpeed;
+
         camera.update();
     }
 
@@ -59,32 +71,28 @@ public class GameScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         viewport.update(width, height);
         hudRenderer.resize(width, height);
-        centerCameraOnMap();
     }
 
     @Override
     public void render(float delta) {
-        // 1. Update Logic
         playerController.update(delta);
         GameManager.getInstance().update(delta);
 
-        // 2. Render World
-        camera.update();
+        updateCamera(delta);
+
         NimonscookedGame.instance.batch.setProjectionMatrix(camera.combined);
 
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
+        Gdx.gl.glClearColor(0.05f, 0.05f, 0.1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         NimonscookedGame.instance.batch.begin();
         worldRenderer.render(NimonscookedGame.instance.batch);
         NimonscookedGame.instance.batch.end();
 
-        // 3. Render UI
         hudRenderer.render();
+        com.nimonscooked.util.CachePools.freeAll();
     }
 
     @Override
-    public void dispose() {
-        // Cleanup resources if needed
-    }
+    public void dispose() {}
 }

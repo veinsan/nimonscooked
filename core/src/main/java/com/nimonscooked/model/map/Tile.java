@@ -1,14 +1,12 @@
 package com.nimonscooked.model.map;
 
-import com.nimonscooked.model.station.Station; // Import Station
+import com.nimonscooked.model.station.Station;
 
 public class Tile {
     public enum TileType { FLOOR, WALL, STATION, EMPTY }
-    
+
     private TileType type;
     private char symbol;
-    
-    // TAMBAHKAN INI: Reference ke Station
     private Station station;
 
     public Tile(TileType type, char symbol) {
@@ -17,11 +15,23 @@ public class Tile {
         this.station = null;
     }
 
-    public TileType getType() { return type; }
-    public boolean isWalkable() { return type == TileType.FLOOR || type == TileType.EMPTY; }
-    public char getSymbol() { return symbol; }
+    public TileType getType() {
+        return type;
+    }
 
-    // Getter & Setter Station
-    public void setStation(Station station) { this.station = station; }
-    public Station getStation() { return station; }
+    public boolean isWalkable() {
+        return type == TileType.FLOOR || type == TileType.EMPTY;
+    }
+
+    public char getSymbol() {
+        return symbol;
+    }
+
+    public void setStation(Station station) {
+        this.station = station;
+    }
+
+    public Station getStation() {
+        return station;
+    }
 }

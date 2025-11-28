@@ -80,7 +80,7 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
 
     @Override
     public float getProgress() {
-        return (cookingThread != null) ? cookingThread.getProgress() : 0f;
+        return cookingThread != null ? cookingThread.getProgress() : 0f;
     }
 
     public List<Preparable> getContents() {
@@ -96,6 +96,8 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
 
     @Override
     public String getDisplayName() {
-        return contents.isEmpty() ? "Frying Pan (Empty)" : "Frying Pan (" + contents.size() + " items)";
+        return contents.isEmpty()
+                ? "Frying Pan (Empty)"
+                : "Frying Pan (" + contents.size() + " items)";
     }
 }

@@ -8,7 +8,9 @@ import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.thread.InteractionThread;
 
 public class CuttingStation extends Station {
-    public CuttingStation(String id) { super(id); }
+    public CuttingStation(String id) {
+        super(id);
+    }
 
     @Override
     public void interact(Chef chef) {
@@ -18,17 +20,14 @@ public class CuttingStation extends Station {
         Item stationItem = this.getItem();
 
         if (heldItem instanceof Ingredient && stationItem == null) {
-            // Taruh
             if (((Ingredient) heldItem).canBeChopped()) {
                 this.setItem(heldItem);
                 chef.setInventory(null);
             }
         } else if (heldItem == null && stationItem != null) {
-            // Ambil
             chef.setInventory(stationItem);
             this.setItem(null);
         } else if (heldItem == null && stationItem instanceof Ingredient) {
-            // Potong (Concurrency: 3 Detik)
             final Ingredient ing = (Ingredient) stationItem;
             if (ing.canBeChopped()) {
                 InteractionThread cutTask = new InteractionThread(chef, 3.0f) {

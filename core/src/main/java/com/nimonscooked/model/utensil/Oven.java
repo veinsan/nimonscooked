@@ -30,8 +30,10 @@ public class Oven extends KitchenUtensil implements CookingDevice {
     public boolean canAccept(Preparable ingredient) {
         if (contents.size() >= MAX_CAPACITY) return false;
         if (!(ingredient instanceof Ingredient)) return false;
+
         Ingredient ing = (Ingredient) ingredient;
         String name = ing.getName().toLowerCase();
+
         return name.contains("pizza") || name.contains("dough");
     }
 
@@ -58,7 +60,7 @@ public class Oven extends KitchenUtensil implements CookingDevice {
 
     @Override
     public float getProgress() {
-        return (cookingThread != null) ? cookingThread.getProgress() : 0f;
+        return cookingThread != null ? cookingThread.getProgress() : 0f;
     }
 
     public List<Preparable> getContents() {
@@ -73,6 +75,8 @@ public class Oven extends KitchenUtensil implements CookingDevice {
 
     @Override
     public String getDisplayName() {
-        return contents.isEmpty() ? "Oven (Empty)" : "Oven (" + contents.size() + " items)";
+        return contents.isEmpty()
+                ? "Oven (Empty)"
+                : "Oven (" + contents.size() + " items)";
     }
 }

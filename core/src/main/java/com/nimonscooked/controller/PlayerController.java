@@ -2,19 +2,19 @@ package com.nimonscooked.controller;
 
 import com.badlogic.gdx.Gdx;
 import com.nimonscooked.manager.MapManager;
-import com.nimonscooked.model.entity.Chef; // Import Chef yang benar
+import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.map.GridMap;
-import com.nimonscooked.model.station.Station;
-import com.nimonscooked.controller.command.Command; // Import Command interface
+import com.nimonscooked.controller.command.Command;
 
 import java.util.List;
 
 public class PlayerController {
-    private InputHandler inputHandler; // Ubah nama variabel biar jelas
+    private InputHandler inputHandler;
     private MapManager mapManager;
     private GridMap map;
 
     private float inputCooldown = 0f;
+    private static final float MOVE_DELAY = 0.15f;
     private static final float ACTION_DELAY = 0.2f;
     private static final float VISUAL_LERP_SPEED = 15f;
 
@@ -25,38 +25,33 @@ public class PlayerController {
     }
 
     public void update(float delta) {
-        // Update referensi map jika berubah (misal loading level baru)
-        if(mapManager.currentMap != map) this.map = mapManager.currentMap;
+        if (mapManager.currentMap != map) this.map = mapManager.currentMap;
 
-        // --- UPDATE VISUAL SEMUA CHEF ---
         if (mapManager.chefs != null) {
             for (Chef c : mapManager.chefs) {
                 updateChefVisuals(c, delta);
+                c.update(delta);
             }
         }
 
         if (mapManager.activeChef == null) return;
 
-        // --- COOLDOWN ---
         if (inputCooldown > 0) {
             inputCooldown -= delta;
         } else {
-            // --- PROSES COMMAND DARI QUEUE ---
-            // Ambil command dari InputHandler
             while (!inputHandler.commandQueue.isEmpty()) {
                 Command cmd = inputHandler.commandQueue.poll();
                 if (cmd != null) {
                     cmd.execute(mapManager.activeChef);
-                    inputCooldown = 0.15f; // Set cooldown kecil antar command
-                    break; // Eksekusi satu command per frame agar smooth
+                    inputCooldown = MOVE_DELAY;
+                    break;
                 }
             }
         }
 
-        // Switch Chef (X)
         if (inputHandler.switchChefRequested) {
             switchChef();
-            inputHandler.switchChefRequested = false; // Reset flag
+            inputHandler.switchChefRequested = false;
             inputCooldown = ACTION_DELAY;
         }
     }
@@ -73,18 +68,15 @@ public class PlayerController {
     }
 
     private void updateChefVisuals(Chef c, float delta) {
-        // 1. Update timer animasi
         if (c.isMoving || c.isChopping) {
             c.stateTime += delta;
         } else {
             c.stateTime = 0;
         }
 
-        // 2. Interpolasi Posisi (Visual mengejar Grid)
         c.visualPos.x += (c.position.col - c.visualPos.x) * VISUAL_LERP_SPEED * delta;
         c.visualPos.y += (c.position.row - c.visualPos.y) * VISUAL_LERP_SPEED * delta;
 
-        // 3. Cek apakah sudah sampai?
         float dist = Math.abs(c.visualPos.x - c.position.col) +
                      Math.abs(c.visualPos.y - c.position.row);
 

@@ -11,8 +11,10 @@ public class CookingThread extends Thread {
     private final CookingDevice device;
     private final List<Preparable> ingredients;
     private volatile boolean running = true;
+
     private static final long TIME_TO_COOK = 12000;
     private static final long TIME_TO_BURN = 12000;
+
     private float progress = 0f;
 
     public CookingThread(CookingDevice device, List<Preparable> ingredients) {
@@ -24,11 +26,13 @@ public class CookingThread extends Thread {
     @Override
     public void run() {
         long startTime = System.currentTimeMillis();
+
         try {
             while (running && (System.currentTimeMillis() - startTime < TIME_TO_COOK)) {
                 progress = (float)(System.currentTimeMillis() - startTime) / TIME_TO_COOK;
                 Thread.sleep(100);
             }
+
             if (!running) return;
 
             synchronized (ingredients) {
@@ -38,7 +42,8 @@ public class CookingThread extends Thread {
             }
 
             Gdx.app.postRunnable(() -> {
-                AudioManager.getInstance().playSound("sfx/fry.wav");
+                AudioManager.getInstance().playSound("sfx/fry.mp3");
+                Gdx.app.log("CookingThread", "Food is COOKED!");
             });
 
             startTime = System.currentTimeMillis();
@@ -48,6 +53,7 @@ public class CookingThread extends Thread {
                 progress = (float)(System.currentTimeMillis() - startTime) / TIME_TO_BURN;
                 Thread.sleep(100);
             }
+
             if (!running) return;
 
             synchronized (ingredients) {
@@ -57,6 +63,11 @@ public class CookingThread extends Thread {
                     }
                 }
             }
+
+            Gdx.app.postRunnable(() -> {
+                AudioManager.getInstance().playSound("sfx/trash.wav");
+                Gdx.app.log("CookingThread", "Food is BURNT!");
+            });
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

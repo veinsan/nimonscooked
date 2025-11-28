@@ -26,12 +26,15 @@ public class GridMap {
         return col >= 0 && col < cols && row >= 0 && row < rows;
     }
 
-    public int getWidth() { return cols; }
-    public int getHeight() { return rows; }
+    public int getWidth() {
+        return cols;
+    }
 
-    // --- TAMBAHAN UNTUK FITUR DASH (BONUS) ---
+    public int getHeight() {
+        return rows;
+    }
+
     public boolean isOccupiedByChef(int col, int row) {
-        // Cek ke MapManager apakah ada chef di koordinat ini
         if (MapManager.getInstance().chefs == null) return false;
 
         for (Chef c : MapManager.getInstance().chefs) {
@@ -39,6 +42,7 @@ public class GridMap {
                 return true;
             }
         }
+
         return false;
     }
 }

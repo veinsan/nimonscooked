@@ -1,6 +1,6 @@
 package com.nimonscooked.controller.command;
 
-import com.nimonscooked.model.entity.Chef; // Import Chef
+import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.manager.MapManager;
 
 public class MoveCommand implements Command {

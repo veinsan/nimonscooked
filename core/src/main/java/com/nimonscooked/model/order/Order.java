@@ -12,7 +12,7 @@ public class Order {
         this.recipeName = recipeName;
         this.reward = reward;
         this.penalty = penalty;
-        this.remainingTime = timeLimit; //
+        this.remainingTime = timeLimit;
     }
 
     public int getPosition() {
@@ -35,12 +35,17 @@ public class Order {
         this.position = position;
     }
 
+    public void decreaseTimer(float delta) {
+        this.remainingTime -= delta;
+    }
+
+    public float getRemainingTime() {
+        return remainingTime;
+    }
+
     @Override
     public String toString() {
         return "Order #" + position + ": " + recipeName +
                " (Reward: +" + reward + ", Penalty: -" + penalty + ")";
     }
-
-    public void decreaseTimer(float delta) { this.remainingTime -= delta; }
-    public float getRemainingTime() { return remainingTime; }
 }

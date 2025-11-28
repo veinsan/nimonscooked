@@ -30,8 +30,10 @@ public class BoilingPot extends KitchenUtensil implements CookingDevice {
     public boolean canAccept(Preparable ingredient) {
         if (contents.size() >= MAX_CAPACITY) return false;
         if (!(ingredient instanceof Ingredient)) return false;
+
         Ingredient ing = (Ingredient) ingredient;
         String name = ing.getName().toLowerCase();
+
         return (name.contains("rice") || name.contains("pasta") || name.contains("beras")) &&
                ing.getState() == Ingredient.State.RAW;
     }
@@ -59,7 +61,7 @@ public class BoilingPot extends KitchenUtensil implements CookingDevice {
 
     @Override
     public float getProgress() {
-        return (cookingThread != null) ? cookingThread.getProgress() : 0f;
+        return cookingThread != null ? cookingThread.getProgress() : 0f;
     }
 
     public List<Preparable> getContents() {
@@ -74,6 +76,8 @@ public class BoilingPot extends KitchenUtensil implements CookingDevice {
 
     @Override
     public String getDisplayName() {
-        return contents.isEmpty() ? "Boiling Pot (Empty)" : "Boiling Pot (" + contents.size() + " items)";
+        return contents.isEmpty()
+                ? "Boiling Pot (Empty)"
+                : "Boiling Pot (" + contents.size() + " items)";
     }
 }

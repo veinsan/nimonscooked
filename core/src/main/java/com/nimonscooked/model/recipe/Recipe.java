@@ -1,8 +1,7 @@
 package com.nimonscooked.model.recipe;
 
 import com.nimonscooked.model.item.Item;
-// --- PERBAIKAN IMPORT DI SINI ---
-import com.nimonscooked.model.item.Ingredient; 
+import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.dish.Dish;
 
 import java.util.ArrayList;
@@ -27,16 +26,12 @@ public class Recipe {
     }
 
     public boolean matches(Item assembledItem) {
-        if (!(assembledItem instanceof Dish)) {
-            return false;
-        }
+        if (!(assembledItem instanceof Dish)) return false;
 
         Dish dish = (Dish) assembledItem;
         List<Item> components = dish.getComponents();
 
-        if (components.size() != requiredItems.size()) {
-            return false;
-        }
+        if (components.size() != requiredItems.size()) return false;
 
         boolean[] usedComponents = new boolean[components.size()];
 
@@ -44,12 +39,9 @@ public class Recipe {
             boolean foundMatch = false;
 
             for (int i = 0; i < components.size(); i++) {
-                if (usedComponents[i]) {
-                    continue;
-                }
+                if (usedComponents[i]) continue;
 
                 Item component = components.get(i);
-
                 if (itemsMatch(requiredItem, component)) {
                     usedComponents[i] = true;
                     foundMatch = true;
@@ -57,24 +49,18 @@ public class Recipe {
                 }
             }
 
-            if (!foundMatch) {
-                return false;
-            }
+            if (!foundMatch) return false;
         }
 
         return true;
     }
 
     private boolean itemsMatch(Item required, Item actual) {
-        if (!required.getName().equalsIgnoreCase(actual.getName())) {
-            return false;
-        }
+        if (!required.getName().equalsIgnoreCase(actual.getName())) return false;
 
-        if (required instanceof Ingredient requiredIngredient) {
-            if (!(actual instanceof Ingredient actualIngredient)) {
-                return false;
-            }
-            return requiredIngredient.getState() == actualIngredient.getState();
+        if (required instanceof Ingredient requiredIng) {
+            if (!(actual instanceof Ingredient actualIng)) return false;
+            return requiredIng.getState() == actualIng.getState();
         }
 
         return true;
@@ -82,9 +68,7 @@ public class Recipe {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Recipe: ").append(name).append("\n");
-        sb.append("Required Items:\n");
+        StringBuilder sb = new StringBuilder("Recipe: ").append(name).append("\nRequired Items:\n");
         for (Item item : requiredItems) {
             sb.append("  - ").append(item.getDisplayName()).append("\n");
         }

@@ -19,15 +19,12 @@ public class NimonscookedGame extends Game {
         Gdx.app.log("Nimonscooked", "Engine Starting...");
 
         try {
-            // 1. Load Assets
             ResourceManager.getInstance().loadAll();
             Gdx.app.log("Nimonscooked", "Assets Loaded Successfully.");
 
-            // 2. Load Map
-            // Pastikan file map_c.txt ada di assets/data/
+            com.nimonscooked.factory.StationFactory.initializeRecipes("data/recipes.json");
             com.nimonscooked.manager.MapManager.getInstance().loadMap("data/map_c.txt");
 
-            // 3. Init Logic
             GameManager.getInstance();
 
         } catch (Exception e) {

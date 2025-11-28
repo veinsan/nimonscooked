@@ -1,7 +1,6 @@
 package com.nimonscooked.model.entity;
 
 import com.badlogic.gdx.math.Vector2;
-import com.nimonscooked.manager.MapManager;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.map.GridMap;
@@ -34,9 +33,7 @@ public class Chef {
     }
 
     public void update(float delta) {
-        if (dashCooldownTimer > 0) {
-            dashCooldownTimer -= delta;
-        }
+        if (dashCooldownTimer > 0) dashCooldownTimer -= delta;
     }
 
     public void move(Direction dir, GridMap map) {
@@ -55,9 +52,7 @@ public class Chef {
 
         if (!map.isValid(targetCol, targetRow)) return;
         Tile targetTile = map.getTile(targetCol, targetRow);
-
         if (targetTile == null || !targetTile.isWalkable()) return;
-
         if (map.isOccupiedByChef(targetCol, targetRow)) return;
 
         position.set(targetRow, targetCol);
@@ -69,6 +64,7 @@ public class Chef {
 
         this.direction = dir;
         int dCol = 0, dRow = 0;
+
         switch (dir) {
             case UP: dRow = 1; break;
             case DOWN: dRow = -1; break;
@@ -82,14 +78,13 @@ public class Chef {
         for (int i = 1; i <= 3; i++) {
             int checkCol = position.col + (dCol * i);
             int checkRow = position.row + (dRow * i);
-            if (map.isValid(checkCol, checkRow)) {
-                Tile t = map.getTile(checkCol, checkRow);
-                if (t != null && t.isWalkable() && !map.isOccupiedByChef(checkCol, checkRow)) {
-                    targetCol = checkCol;
-                    targetRow = checkRow;
-                } else {
-                    break;
-                }
+
+            if (!map.isValid(checkCol, checkRow)) break;
+
+            Tile t = map.getTile(checkCol, checkRow);
+            if (t != null && t.isWalkable() && !map.isOccupiedByChef(checkCol, checkRow)) {
+                targetCol = checkCol;
+                targetRow = checkRow;
             } else {
                 break;
             }
@@ -103,6 +98,7 @@ public class Chef {
 
     public void throwItem(GridMap map, List<Chef> allChefs) {
         if (inventory == null || !(inventory instanceof Ingredient)) return;
+
         Ingredient ing = (Ingredient) inventory;
         if (ing.getState() != Ingredient.State.RAW && ing.getState() != Ingredient.State.CHOPPED) return;
 
@@ -144,8 +140,8 @@ public class Chef {
                     break;
                 }
             }
-            if (caught) break;
 
+            if (caught) break;
             targetCol = checkCol;
             targetRow = checkRow;
         }

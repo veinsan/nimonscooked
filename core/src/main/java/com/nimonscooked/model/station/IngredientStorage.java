@@ -14,7 +14,6 @@ public class IngredientStorage extends Station {
 
     @Override
     public void interact(Chef chef) {
-        // Jika tangan chef kosong, beri ingredient baru
         if (chef.getInventory() == null) {
             Ingredient newIngredient = createIngredient(ingredientName);
             chef.setInventory(newIngredient);
@@ -23,8 +22,6 @@ public class IngredientStorage extends Station {
     }
 
     private Ingredient createIngredient(String name) {
-        // Mapping nama bahan ke path assets/textures/ingredients/
-        // Contoh: "Tomato" -> "ingredients/tomato"
         String basePath = "ingredients/" + name.toLowerCase();
         return new Ingredient(name, basePath);
     }

@@ -7,28 +7,20 @@ import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
 import com.nimonscooked.model.station.Station;
-import java.util.List;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * DESIGN PATTERN: Singleton Pattern
- * SOLID: Single Responsibility - Map loading & Chef management
- */
 public class MapManager {
     private static final MapManager instance = new MapManager();
-
-    public static MapManager getInstance() {
-        return instance;
-    }
+    public static MapManager getInstance() { return instance; }
 
     public GridMap currentMap;
-    public List<Chef> chefs; // Sekarang List dikenal
+    public List<Chef> chefs;
     public Chef activeChef;
 
-    // BARU: Station registry untuk lookup cepat
     private Map<String, Station> stationRegistry;
 
     private MapManager() {
@@ -50,7 +42,6 @@ public class MapManager {
         int height = 0;
         int width = 0;
 
-        // Calculate dimensions
         for (String line : lines) {
             if (line.trim().length() > 0 && !line.startsWith("//")) {
                 height++;
@@ -67,9 +58,8 @@ public class MapManager {
             for (int col = 0; col < line.length(); col++) {
                 char c = line.charAt(col);
                 int gridX = col;
-                int visualGridY = height - 1 - row; // Flip Y axis untuk LibGDX
+                int visualGridY = height - 1 - row;
 
-                // Determine tile type
                 Tile.TileType type;
                 if (c == 'X') {
                     type = Tile.TileType.WALL;
@@ -78,20 +68,16 @@ public class MapManager {
                 } else if (StationFactory.isStationSymbol(c)) {
                     type = Tile.TileType.STATION;
                 } else {
-                    type = Tile.TileType.FLOOR; // Default
+                    type = Tile.TileType.FLOOR;
                 }
 
-                // Create tile
                 Tile tile = new Tile(type, c);
                 currentMap.setTile(gridX, visualGridY, tile);
 
-                // Handle special tiles
                 if (c == 'V') {
-                    // Chef spawn point
                     Chef newChef = new Chef(gridX, visualGridY);
                     chefs.add(newChef);
                 } else if (StationFactory.isStationSymbol(c)) {
-                    // Create station using Factory Pattern
                     Station station = StationFactory.createStation(c, gridX, visualGridY);
                     if (station != null) {
                         tile.setStation(station);
@@ -106,11 +92,9 @@ public class MapManager {
             activeChef = chefs.get(0);
         }
 
-        Gdx.app.log("MapManager", "Map loaded! Chefs: " + chefs.size() +
-                                  ", Stations: " + stationRegistry.size());
+        Gdx.app.log("MapManager", "Map loaded! Chefs: " + chefs.size() + ", Stations: " + stationRegistry.size());
     }
 
-    // ===== STATION LOOKUP =====
     public Station getStationAt(int col, int row) {
         if (!currentMap.isValid(col, row)) return null;
         Tile tile = currentMap.getTile(col, row);

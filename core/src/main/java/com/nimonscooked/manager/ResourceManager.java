@@ -1,5 +1,6 @@
 package com.nimonscooked.manager;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
@@ -24,13 +25,24 @@ public class ResourceManager implements Disposable {
     }
 
     public void loadAll() {
-        // UI & Font
         assetManager.load(UI_SKIN_PATH, Skin.class);
         assetManager.load(CUSTOM_FONT_PATH, BitmapFont.class);
 
-        // --- CHEF & STATIONS & ITEMS (Tetap sama) ---
-        loadTexture("chef/chef_idle.png");
-        loadTexture("chef/chef_walk.png");
+        loadTexture("ui/title_bg.png");
+        loadTexture("ui/warning.png");
+        loadTexture("ui/coin.png");
+        loadTexture("ui/wasd.png");
+        loadTexture("ui/key_1.png");
+        loadTexture("ui/key_e.png");
+        loadTexture("ui/key_f.png");
+        loadTexture("ui/a.png");
+
+        loadTexture("chef/chef_idle_down.png");
+        loadTexture("chef/chef_idle_up.png");
+        loadTexture("chef/chef_idle_side.png");
+        loadTexture("chef/chef_walk_down.png");
+        loadTexture("chef/chef_walk_up.png");
+        loadTexture("chef/chef_walk_side.png");
         loadTexture("chef/chef_chop.png");
 
         loadTexture("stations/floor.png");
@@ -38,53 +50,65 @@ public class ResourceManager implements Disposable {
         loadTexture("stations/counter.png");
         loadTexture("stations/cutting_board.png");
         loadTexture("stations/stove.png");
+        loadTexture("stations/stove_active.png");
+        loadTexture("stations/oven.png");
+        loadTexture("stations/oven_active.png");
         loadTexture("stations/crate.png");
         loadTexture("stations/delivery.png");
         loadTexture("stations/sink.png");
         loadTexture("stations/trash.png");
+        loadTexture("stations/plate_shelf.png");
+        loadTexture("stations/plant.png");
 
         loadTexture("items/plate.png");
         loadTexture("items/plate_dirty.png");
         loadTexture("items/pan.png");
-        loadTexture("items/pan_meat.png");
-        loadTexture("items/pan_meat_cooked.png");
 
-        loadTexture("ui/title_bg.png"); // <--- TAMBAHKAN INI
-
-        // --- INGREDIENTS (Sesuai daftar Anda) ---
         loadTexture("ingredients/bun.png");
-
         loadTexture("ingredients/meat_raw.png");
         loadTexture("ingredients/meat_cooked.png");
         loadTexture("ingredients/meat_burnt.png");
-
         loadTexture("ingredients/cheese.png");
         loadTexture("ingredients/cheese_chopped.png");
-
         loadTexture("ingredients/tomato.png");
         loadTexture("ingredients/tomato_chopped.png");
-
         loadTexture("ingredients/lettuce.png");
         loadTexture("ingredients/lettuce_chopped.png");
-
-        // --- DISHES (Menggunakan satu-satunya gambar dish yang ada) ---
         loadTexture("ingredients/burger_complete.png");
 
-        // --- AUDIO (Sesuai daftar Anda) ---
+        loadTexture("vfx/smoke.png");
+        loadTexture("vfx/fire.png");
+        loadTexture("vfx/sparkle.png");
+        loadTexture("vfx/circle.png");
+
+        for (int i = 1; i <= 5; i++) {
+            loadTexture("customer/" + i + "_neutral.png");
+            loadTexture("customer/" + i + "_angry.png");
+        }
+
         loadMusic("music/bgm_menu.mp3");
         loadMusic("music/bgm_game.mp3");
+        loadMusic("music/fire_loop.mp3");
 
-        loadSound("sfx/chop.wav");
-        loadSound("sfx/fry.wav");
-        loadSound("sfx/trash.wav");
+        loadSound("sfx/chop.mp3");
+        loadSound("sfx/fry.mp3");
+        loadSound("sfx/catch.mp3");
+
         loadSound("sfx/delivery_success.wav");
         loadSound("sfx/delivery_fail.wav");
+        loadSound("sfx/alarm.wav");
+        loadSound("sfx/extinguisher.wav");
+        loadSound("sfx/trash.wav");
 
         assetManager.finishLoading();
     }
 
     private void loadTexture(String path) {
-        assetManager.load(TEXTURE_ROOT + path, Texture.class);
+        try {
+            assetManager.load(TEXTURE_ROOT + path, Texture.class);
+        } catch (Exception e) {
+            Gdx.app.error("ResourceManager", "Failed queueing texture: " + path);
+        }
     }
 
     private void loadMusic(String path) {
@@ -117,5 +141,7 @@ public class ResourceManager implements Disposable {
     public BitmapFont getCustomFont() { return assetManager.get(CUSTOM_FONT_PATH, BitmapFont.class); }
 
     @Override
-    public void dispose() { assetManager.dispose(); }
+    public void dispose() {
+        assetManager.dispose();
+    }
 }

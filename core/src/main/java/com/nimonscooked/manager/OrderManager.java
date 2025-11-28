@@ -24,18 +24,16 @@ public class OrderManager {
     }
 
     public void update(float delta) {
-        // Spawn Order
         timeSinceLastOrder += delta;
         if (timeSinceLastOrder >= ORDER_INTERVAL && activeOrders.size() < 5) {
             spawnOrder();
             timeSinceLastOrder = 0;
         }
 
-        // Check Expiration
         Iterator<Order> iterator = activeOrders.iterator();
         while (iterator.hasNext()) {
             Order order = iterator.next();
-            order.decreaseTimer(delta); // Pastikan class Order punya method ini
+            order.decreaseTimer(delta);
 
             if (order.getRemainingTime() <= 0) {
                 iterator.remove();
@@ -54,22 +52,23 @@ public class OrderManager {
                 int score = order.getReward();
                 activeOrders.remove(order);
                 GameManager.getInstance().addScore(score);
-                spawnOrder(); // Langsung ganti order baru
+                spawnOrder();
                 return score;
             }
         }
 
-        GameManager.getInstance().addScore(-10); // Wrong order penalty
+        GameManager.getInstance().addScore(-10);
         return -10;
     }
 
     private void spawnOrder() {
         if (availableRecipes.isEmpty()) return;
         Recipe r = availableRecipes.get(new Random().nextInt(availableRecipes.size()));
-        // Position, Name, Reward, Penalty, TimeLimit
         Order newOrder = new Order(activeOrders.size() + 1, r.getName(), 120, -50, ORDER_TIME_LIMIT);
         activeOrders.add(newOrder);
     }
 
-    public List<Order> getActiveOrders() { return activeOrders; }
+    public List<Order> getActiveOrders() {
+        return activeOrders;
+    }
 }

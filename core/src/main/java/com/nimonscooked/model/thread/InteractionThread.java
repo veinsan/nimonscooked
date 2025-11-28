@@ -18,13 +18,15 @@ public abstract class InteractionThread extends Thread {
     public void run() {
         chef.setBusy(true);
         long startTime = System.currentTimeMillis();
+
         try {
             while (running && (System.currentTimeMillis() - startTime < durationMs)) {
                 progress = Math.min(1f, (float)(System.currentTimeMillis() - startTime) / durationMs);
                 Thread.sleep(50);
             }
+
             if (running) {
-                progress = 1.0f;
+                progress = 1f;
                 onComplete();
             }
         } catch (InterruptedException e) {

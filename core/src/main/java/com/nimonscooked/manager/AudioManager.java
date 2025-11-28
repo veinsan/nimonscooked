@@ -9,14 +9,12 @@ public class AudioManager {
 
     private Music currentMusic;
 
-    // Default values
     private float masterVolume = 1.0f;
     private float musicVolume = 0.5f;
     private float sfxVolume = 1.0f;
 
     private AudioManager() {}
 
-    // --- PLAYBACK METHODS ---
     public void playMusic(String fileName) {
         Music newMusic = ResourceManager.getInstance().getMusic(fileName);
         if (newMusic == null) return;
@@ -25,7 +23,7 @@ public class AudioManager {
 
         currentMusic = newMusic;
         currentMusic.setLooping(true);
-        updateMusicVolume(); // Set volume sesuai setting saat ini
+        updateMusicVolume();
         currentMusic.play();
     }
 
@@ -40,16 +38,13 @@ public class AudioManager {
     public void playSound(String fileName, float pitch) {
         Sound sound = ResourceManager.getInstance().getSound(fileName);
         if (sound != null) {
-            // Volume total = Master * SFX
             sound.play(masterVolume * sfxVolume, pitch, 0);
         }
     }
 
-    // --- VOLUME SETTERS (Dipanggil dari Options Menu) ---
-
     public void setMasterVolume(float vol) {
         this.masterVolume = vol;
-        updateMusicVolume(); // Update musik yang sedang jalan langsung
+        updateMusicVolume();
     }
 
     public void setMusicVolume(float vol) {
@@ -63,12 +58,10 @@ public class AudioManager {
 
     private void updateMusicVolume() {
         if (currentMusic != null) {
-            // Volume total = Master * Music
             currentMusic.setVolume(masterVolume * musicVolume);
         }
     }
 
-    // Getters untuk UI Slider
     public float getMasterVolume() { return masterVolume; }
     public float getMusicVolume() { return musicVolume; }
     public float getSfxVolume() { return sfxVolume; }

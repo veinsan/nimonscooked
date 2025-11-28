@@ -7,14 +7,11 @@ import java.util.Stack;
 
 public class PlateStorage extends Station {
 
-    // Stack untuk menyimpan piring (Bersih di bawah, Kotor di atas)
     private Stack<Plate> plateStack;
 
     public PlateStorage(String id) {
         super(id);
         this.plateStack = new Stack<>();
-
-        // Inisialisasi 4 piring bersih (sesuai spec Map C)
         for (int i = 0; i < 4; i++) {
             Plate p = new Plate();
             p.setClean(true);
@@ -24,13 +21,10 @@ public class PlateStorage extends Station {
 
     @Override
     public void interact(Chef chef) {
-        // Chef hanya bisa ambil piring jika tangan kosong
         if (chef.getInventory() == null) {
             if (!plateStack.isEmpty()) {
-                // Ambil piring teratas (bisa kotor/bersih)
                 Plate takenPlate = plateStack.pop();
                 chef.setInventory(takenPlate);
-
                 String status = takenPlate.isClean() ? "Clean" : "Dirty";
                 Gdx.app.log("PlateStorage", "Took a " + status + " plate. Remaining: " + plateStack.size());
             } else {
@@ -39,10 +33,6 @@ public class PlateStorage extends Station {
         }
     }
 
-    /**
-     * Dipanggil oleh ServingCounter setelah 10 detik.
-     * Mengembalikan piring kotor ke tumpukan paling atas.
-     */
     public synchronized void returnDirtyPlate() {
         Plate dirtyPlate = new Plate();
         dirtyPlate.setClean(false);

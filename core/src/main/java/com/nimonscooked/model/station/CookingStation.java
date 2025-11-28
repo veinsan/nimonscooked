@@ -7,7 +7,9 @@ import com.nimonscooked.model.utensil.CookingDevice;
 import com.nimonscooked.model.ingredient.Preparable;
 
 public class CookingStation extends Station {
-    public CookingStation(String id) { super(id); }
+    public CookingStation(String id) {
+        super(id);
+    }
 
     @Override
     public void interact(Chef chef) {
@@ -19,21 +21,21 @@ public class CookingStation extends Station {
         if (heldItem instanceof CookingDevice && stationItem == null) {
             this.setItem(heldItem);
             chef.setInventory(null);
-            // Resume cooking if contents exist
             ((CookingDevice) heldItem).startCooking();
-        }
-        else if (heldItem == null && stationItem instanceof CookingDevice) {
+            Gdx.app.log("CookingStation", "Placed pot/pan.");
+        } else if (heldItem == null && stationItem instanceof CookingDevice) {
             CookingDevice device = (CookingDevice) stationItem;
-            device.stopCooking(); // STOP THREAD
+            device.stopCooking();
             chef.setInventory(stationItem);
             this.setItem(null);
-        }
-        else if (heldItem instanceof Preparable && stationItem instanceof CookingDevice) {
+            Gdx.app.log("CookingStation", "Took pot/pan. Cooking paused.");
+        } else if (heldItem instanceof Preparable && stationItem instanceof CookingDevice) {
             CookingDevice device = (CookingDevice) stationItem;
             if (device.canAccept((Preparable) heldItem)) {
                 device.addIngredient((Preparable) heldItem);
                 chef.setInventory(null);
-                device.startCooking(); // START THREAD
+                device.startCooking();
+                Gdx.app.log("CookingStation", "Ingredient added. Cooking started.");
             }
         }
     }

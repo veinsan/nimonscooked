@@ -1,4 +1,5 @@
 package com.nimonscooked.model.order;
+
 import java.util.List;
 
 public interface OrderObserver {
