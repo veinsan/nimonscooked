@@ -106,7 +106,6 @@ public class Chef {
             case LEFT: dCol = -1; break;
             case RIGHT: dCol = 1; break;
         }
-        
 
         boolean caught = false;
         Chef catcher = null;

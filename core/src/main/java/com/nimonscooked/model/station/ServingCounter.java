@@ -1,12 +1,14 @@
 package com.nimonscooked.model.station;
 
-import com.nimonscooked.manager.AudioManager;
+import com.badlogic.gdx.Gdx;
 import com.nimonscooked.manager.GameManager;
 import com.nimonscooked.manager.MapManager;
 import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.utensil.Plate;
 import com.nimonscooked.model.dish.Dish;
+
+import java.util.concurrent.TimeUnit;
 
 public class ServingCounter extends Station {
     public ServingCounter(String id) {
@@ -20,11 +22,7 @@ public class ServingCounter extends Station {
             Plate plate = (Plate) heldItem;
             if (!plate.isEmpty() && plate.getContainedDish() != null) {
                 Dish dish = plate.getContainedDish();
-                int score = GameManager.getInstance().orderManager.submitOrder(dish);
-
-                if (score > 0) AudioManager.getInstance().playSound("sfx/delivery_success.wav");
-                else AudioManager.getInstance().playSound("sfx/delivery_fail.wav");
-
+                GameManager.getInstance().orderManager.submitOrder(dish);
                 chef.setInventory(null);
                 startPlateReturnTimer();
             }
@@ -32,16 +30,20 @@ public class ServingCounter extends Station {
     }
 
     private void startPlateReturnTimer() {
-        new Thread(() -> {
+        GameManager.getThreadPool().execute(() -> {
             try {
-                Thread.sleep(10000);
-                for (Station s : MapManager.getInstance().getAllStations()) {
-                    if (s instanceof PlateStorage) {
-                        ((PlateStorage) s).returnDirtyPlate();
-                        break;
+                TimeUnit.SECONDS.sleep(10);
+                Gdx.app.postRunnable(() -> {
+                    for (Station s : MapManager.getInstance().getAllStations()) {
+                        if (s instanceof PlateStorage) {
+                            ((PlateStorage) s).returnDirtyPlate();
+                            break;
+                        }
                     }
-                }
-            } catch (Exception ignored) {}
-        }).start();
+                });
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
     }
 }

@@ -2,27 +2,57 @@ package com.nimonscooked.model.dish;
 
 import com.nimonscooked.model.item.Item;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Dish extends Item {
     private final List<Item> components;
+    private final int componentCount;
 
     public Dish(String name, List<Item> components) {
-        super(name, "ingredients/burger_complete.png");
+        super(name, determineDishTexture(name));
         this.components = new ArrayList<>(components);
+        this.componentCount = components.size();
+    }
+
+    private static String determineDishTexture(String dishName) {
+        String lowerName = dishName.toLowerCase();
+        
+        if (lowerName.contains("burger")) {
+            return "ingredients/burger_complete.png";
+        } else if (lowerName.contains("salad")) {
+            return "ingredients/salad.png";
+        } else if (lowerName.contains("steak")) {
+            return "ingredients/meat_cooked.png";
+        }
+        
+        return "ingredients/burger_complete.png";
     }
 
     public List<Item> getComponents() {
-        return new ArrayList<>(components);
+        return Collections.unmodifiableList(components);
     }
 
     public int getComponentCount() {
-        return components.size();
+        return componentCount;
+    }
+
+    public boolean isEmpty() {
+        return componentCount == 0;
+    }
+
+    public boolean containsIngredient(String ingredientName) {
+        for (Item item : components) {
+            if (item.getName().equalsIgnoreCase(ingredientName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public String getDisplayName() {
-        return name + " (" + components.size() + " items)";
+        return name + " (" + componentCount + " items)";
     }
 
     @Override
@@ -35,5 +65,25 @@ public class Dish extends Item {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Dish)) return false;
+        
+        Dish other = (Dish) obj;
+        if (componentCount != other.componentCount) return false;
+        if (!name.equalsIgnoreCase(other.name)) return false;
+        
+        return components.equals(other.components);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + componentCount;
+        result = 31 * result + components.hashCode();
+        return result;
     }
 }

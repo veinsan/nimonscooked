@@ -32,6 +32,9 @@ public class MainMenuScreen extends ScreenAdapter {
     private Table optionsTable;
     private Table howToPlayTable;
 
+    private float landingBlinkTimer = 0f;
+    private static final float BLINK_INTERVAL = 0.5f;
+
     public MainMenuScreen() {
         stage = new Stage(new FitViewport(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT));
         skin = ResourceManager.getInstance().getSkin();
@@ -63,7 +66,10 @@ public class MainMenuScreen extends ScreenAdapter {
         howToPlayTable.setVisible(false);
 
         switch (newState) {
-            case LANDING: landingTable.setVisible(true); break;
+            case LANDING: 
+                landingTable.setVisible(true);
+                landingBlinkTimer = 0f;
+                break;
             case MAIN_MENU: mainMenuTable.setVisible(true); break;
             case OPTIONS: optionsTable.setVisible(true); break;
             case HOW_TO_PLAY: howToPlayTable.setVisible(true); break;
@@ -74,8 +80,14 @@ public class MainMenuScreen extends ScreenAdapter {
         landingTable = new Table();
         landingTable.setFillParent(true);
 
+        Label titleLabel = new Label("NIMONSCOOKED", skin);
+        titleLabel.setFontScale(2.5f);
+
         Label pressKeyLabel = new Label("PRESS 'ENTER' TO CONTINUE", skin);
-        landingTable.add(pressKeyLabel).expand().bottom().padBottom(100);
+        pressKeyLabel.setFontScale(1.2f);
+
+        landingTable.add(titleLabel).expand().padBottom(300).row();
+        landingTable.add(pressKeyLabel).bottom().padBottom(100);
 
         stage.addActor(landingTable);
     }
@@ -92,18 +104,21 @@ public class MainMenuScreen extends ScreenAdapter {
 
         btnStart.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
+                AudioManager.getInstance().playSound("sfx/delivery_success.wav");
                 NimonscookedGame.instance.setScreen(new GameScreen());
             }
         });
 
         btnHowTo.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
+                AudioManager.getInstance().playSound("sfx/catch.mp3");
                 changeState(MenuState.HOW_TO_PLAY);
             }
         });
 
         btnOption.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
+                AudioManager.getInstance().playSound("sfx/catch.mp3");
                 changeState(MenuState.OPTIONS);
             }
         });
@@ -176,6 +191,7 @@ public class MainMenuScreen extends ScreenAdapter {
         TextButton btnBack = new TextButton("BACK", skin);
         btnBack.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
+                AudioManager.getInstance().playSound("sfx/catch.mp3");
                 changeState(MenuState.MAIN_MENU);
             }
         });
@@ -208,13 +224,16 @@ public class MainMenuScreen extends ScreenAdapter {
 
         String instructions =
             "CONTROLS:\n" +
-            "WASD : Move Chef\n" +
-            "V    : Interact / Chop / Cook\n" +
-            "C    : Pick Up / Drop\n" +
-            "X    : Switch Chef\n\n" +
+            "WASD / Arrow Keys : Move Chef\n" +
+            "V / E             : Interact / Chop / Cook\n" +
+            "F / K             : Throw Item\n" +
+            "SHIFT + Direction : Dash (3 tiles)\n" +
+            "X / TAB           : Switch Chef\n\n" +
             "GOAL:\n" +
             "Prepare ingredients, cook them, assemble dishes,\n" +
-            "and serve them to the customers before time runs out!";
+            "and serve them to customers before time runs out!\n\n" +
+            "Complete orders quickly for bonus points.\n" +
+            "Avoid burning food and missing orders!";
 
         Label content = new Label(instructions, skin);
         content.setAlignment(Align.center);
@@ -222,6 +241,7 @@ public class MainMenuScreen extends ScreenAdapter {
         TextButton btnBack = new TextButton("BACK", skin);
         btnBack.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
+                AudioManager.getInstance().playSound("sfx/catch.mp3");
                 changeState(MenuState.MAIN_MENU);
             }
         });
@@ -236,6 +256,14 @@ public class MainMenuScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         if (currentState == MenuState.LANDING) {
+            landingBlinkTimer += delta;
+            
+            if (landingBlinkTimer >= BLINK_INTERVAL) {
+                landingBlinkTimer = 0f;
+                Label pressLabel = (Label) landingTable.getChildren().get(1);
+                pressLabel.setVisible(!pressLabel.isVisible());
+            }
+            
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                 AudioManager.getInstance().playSound("sfx/delivery_success.wav");
                 changeState(MenuState.MAIN_MENU);

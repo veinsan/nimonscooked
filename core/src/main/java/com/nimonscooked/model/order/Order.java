@@ -1,11 +1,14 @@
 package com.nimonscooked.model.order;
 
+import com.badlogic.gdx.graphics.Color;
+
 public class Order {
     private int position;
     private final String recipeName;
     private final int reward;
     private final int penalty;
     private float remainingTime;
+    private final float initialTime;
 
     public Order(int position, String recipeName, int reward, int penalty, int timeLimit) {
         this.position = position;
@@ -13,6 +16,23 @@ public class Order {
         this.reward = reward;
         this.penalty = penalty;
         this.remainingTime = timeLimit;
+        this.initialTime = timeLimit;
+    }
+
+    public Color getProgressColor() {
+        float progress = remainingTime / initialTime;
+        
+        if (progress < 0.2f) {
+            return Color.RED;
+        } else if (progress < 0.5f) {
+            return Color.ORANGE;
+        } else {
+            return Color.GREEN;
+        }
+    }
+
+    public float getProgressPercentage() {
+        return Math.max(0f, Math.min(1f, remainingTime / initialTime));
     }
 
     public int getPosition() {

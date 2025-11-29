@@ -1,5 +1,6 @@
 package com.nimonscooked.model.utensil;
 
+import com.nimonscooked.manager.AudioManager;
 import com.nimonscooked.model.ingredient.Preparable;
 import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.thread.CookingThread;
@@ -31,7 +32,7 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
         if (contents.size() >= MAX_CAPACITY) return false;
         if (!(ingredient instanceof Ingredient)) return false;
         Ingredient ing = (Ingredient) ingredient;
-        return ing.getState() == Ingredient.State.CHOPPED;
+        return ing.getState() == Ingredient.State.CHOPPED || ing.getState() == Ingredient.State.RAW;
     }
 
     @Override
@@ -47,19 +48,27 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
             this.textureName = "items/pan.png";
         } else {
             boolean hasCooked = false;
+            boolean hasBurnt = false;
+            
             for (Preparable p : contents) {
                 if (p instanceof Ingredient) {
                     Ingredient ing = (Ingredient) p;
+                    if (ing.getState() == Ingredient.State.BURNT) {
+                        hasBurnt = true;
+                        break;
+                    }
                     if (ing.getState() == Ingredient.State.COOKED) {
                         hasCooked = true;
-                        break;
                     }
                 }
             }
-            if (hasCooked) {
-                this.textureName = "items/pan_meat_cooked.png";
+            
+            if (hasBurnt) {
+                this.textureName = "ingredients/meat_burnt.png";
+            } else if (hasCooked) {
+                this.textureName = "ingredients/meat_cooked.png";
             } else {
-                this.textureName = "items/pan_meat.png";
+                this.textureName = "ingredients/meat_raw.png";
             }
         }
     }
@@ -70,6 +79,14 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
         if (cookingThread == null || !cookingThread.isAlive()) {
             cookingThread = new CookingThread(this, contents);
             cookingThread.start();
+            AudioManager.getInstance().playSound("sfx/fry.mp3");
+        }
+    }
+
+    @Override
+    public void stopCooking() {
+        if (cookingThread != null) {
+            cookingThread.stopCooking();
         }
     }
 

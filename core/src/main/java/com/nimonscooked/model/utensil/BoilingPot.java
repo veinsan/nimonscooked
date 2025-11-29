@@ -1,5 +1,6 @@
 package com.nimonscooked.model.utensil;
 
+import com.nimonscooked.manager.AudioManager;
 import com.nimonscooked.model.ingredient.Preparable;
 import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.thread.CookingThread;
@@ -34,7 +35,8 @@ public class BoilingPot extends KitchenUtensil implements CookingDevice {
         Ingredient ing = (Ingredient) ingredient;
         String name = ing.getName().toLowerCase();
 
-        return (name.contains("rice") || name.contains("pasta") || name.contains("beras")) &&
+        return (name.contains("rice") || name.contains("pasta") || name.contains("beras") || 
+                name.contains("noodle") || name.contains("spaghetti")) &&
                ing.getState() == Ingredient.State.RAW;
     }
 
@@ -42,6 +44,7 @@ public class BoilingPot extends KitchenUtensil implements CookingDevice {
     public void addIngredient(Preparable ingredient) {
         if (canAccept(ingredient)) {
             contents.add(ingredient);
+            AudioManager.getInstance().playSound("sfx/catch.mp3");
         }
     }
 
@@ -51,6 +54,13 @@ public class BoilingPot extends KitchenUtensil implements CookingDevice {
         if (cookingThread == null || !cookingThread.isAlive()) {
             cookingThread = new CookingThread(this, contents);
             cookingThread.start();
+        }
+    }
+
+    @Override
+    public void stopCooking() {
+        if (cookingThread != null) {
+            cookingThread.stopCooking();
         }
     }
 
@@ -71,6 +81,7 @@ public class BoilingPot extends KitchenUtensil implements CookingDevice {
     @Override
     public void clear() {
         super.clear();
+        stopCooking();
         contents.clear();
     }
 

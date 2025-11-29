@@ -5,7 +5,6 @@ import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
 import com.nimonscooked.model.station.Station;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,8 +18,11 @@ public class MapGenerator {
     public static void generateRandomMapC() {
         MapManager manager = MapManager.getInstance();
         GridMap map = new GridMap(WIDTH, HEIGHT);
+        
+        // Reset Chef
         manager.chefs.clear();
-
+        
+        // 1. Inisialisasi Lantai & Tembok Pinggir
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 if (x == 0 || x == WIDTH - 1 || y == 0 || y == HEIGHT - 1) {
@@ -31,43 +33,73 @@ public class MapGenerator {
             }
         }
 
+        // 2. Daftar Station Wajib untuk Map C (Burger)
         List<Character> stations = new ArrayList<>();
-        for (int i = 0; i < 4; i++) stations.add('R');
-        for (int i = 0; i < 2; i++) stations.add('C');
-        for (int i = 0; i < 4; i++) stations.add('A');
-        for (int i = 0; i < 2; i++) stations.add('W');
-        stations.add('S');
-        stations.add('T');
-        stations.add('P');
-        for (int i = 0; i < 5; i++) stations.add('I');
+        // Komposisi agar tidak macet:
+        addStations(stations, 'R', 4); // Cooking (Stove)
+        addStations(stations, 'C', 2); // Cutting
+        addStations(stations, 'A', 4); // Assembly (Meja kosong)
+        addStations(stations, 'W', 2); // Washing
+        addStations(stations, 'S', 1); // Serving
+        addStations(stations, 'T', 1); // Trash
+        addStations(stations, 'P', 1); // Plate Storage
+        addStations(stations, 'I', 5); // Ingredients (Bun, Meat, Cheese, Tomato, Lettuce)
 
+        // Acak urutan station
         Collections.shuffle(stations);
 
+        // 3. Tempatkan Station di Grid (Cari tempat kosong secara acak)
         for (Character symbol : stations) {
-            placeStation(map, symbol);
+            placeStationRandomly(map, symbol);
         }
 
-        manager.chefs.add(new Chef(2, 2));
-        manager.chefs.add(new Chef(3, 2));
-        manager.activeChef = manager.chefs.get(0);
+        // 4. Spawn 2 Chef di posisi aman (Lantai kosong)
+        spawnChefRandomly(map, manager);
+        spawnChefRandomly(map, manager);
+        
+        if (!manager.chefs.isEmpty()) {
+            manager.activeChef = manager.chefs.get(0);
+        }
 
         manager.currentMap = map;
+        System.out.println("Random Level Generated (Map C Variant)!");
     }
 
-    private static void placeStation(GridMap map, char symbol) {
+    private static void addStations(List<Character> list, char symbol, int count) {
+        for (int i = 0; i < count; i++) list.add(symbol);
+    }
+
+    private static void placeStationRandomly(GridMap map, char symbol) {
+        int attempts = 0;
+        while (attempts < 100) {
+            // Hindari pinggir tembok (x=1..12, y=1..8)
+            int x = random.nextInt(WIDTH - 2) + 1;
+            int y = random.nextInt(HEIGHT - 2) + 1;
+
+            Tile t = map.getTile(x, y);
+            // Syarat: Harus lantai kosong dan belum ada station
+            if (t.getType() == Tile.TileType.FLOOR && t.getStation() == null) {
+                Station s = StationFactory.createStation(symbol, x, y);
+                if (s != null) {
+                    Tile newTile = new Tile(Tile.TileType.STATION, symbol);
+                    newTile.setStation(s);
+                    map.setTile(x, y, newTile);
+                    return; // Berhasil taruh
+                }
+            }
+            attempts++;
+        }
+    }
+    
+    private static void spawnChefRandomly(GridMap map, MapManager manager) {
         int attempts = 0;
         while (attempts < 100) {
             int x = random.nextInt(WIDTH - 2) + 1;
             int y = random.nextInt(HEIGHT - 2) + 1;
             Tile t = map.getTile(x, y);
             if (t.getType() == Tile.TileType.FLOOR && t.getStation() == null) {
-                Station s = StationFactory.createStation(symbol, x, y);
-                if (s != null) {
-                    t = new Tile(Tile.TileType.STATION, symbol);
-                    t.setStation(s);
-                    map.setTile(x, y, t);
-                    return;
-                }
+                manager.chefs.add(new Chef(x, y));
+                return;
             }
             attempts++;
         }

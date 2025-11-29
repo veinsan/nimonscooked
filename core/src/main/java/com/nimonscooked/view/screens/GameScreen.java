@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.nimonscooked.NimonscookedGame;
@@ -60,9 +61,18 @@ public class GameScreen extends ScreenAdapter {
         float targetX = activeChef.getX() * GameConfig.TILE_SIZE;
         float targetY = activeChef.getY() * GameConfig.TILE_SIZE;
 
-        float lerpSpeed = 5f * delta;
-        camera.position.x += (targetX - camera.position.x) * lerpSpeed;
-        camera.position.y += (targetY - camera.position.y) * lerpSpeed;
+        float lerpSpeed = 8f * delta;
+        camera.position.x = MathUtils.lerp(camera.position.x, targetX, lerpSpeed);
+        camera.position.y = MathUtils.lerp(camera.position.y, targetY, lerpSpeed);
+
+        int mapWidth = MapManager.getInstance().currentMap.getWidth() * GameConfig.TILE_SIZE;
+        int mapHeight = MapManager.getInstance().currentMap.getHeight() * GameConfig.TILE_SIZE;
+
+        float halfWidth = camera.viewportWidth * camera.zoom / 2f;
+        float halfHeight = camera.viewportHeight * camera.zoom / 2f;
+
+        camera.position.x = MathUtils.clamp(camera.position.x, halfWidth, mapWidth - halfWidth);
+        camera.position.y = MathUtils.clamp(camera.position.y, halfHeight, mapHeight - halfHeight);
 
         camera.update();
     }

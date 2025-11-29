@@ -8,9 +8,13 @@ import com.nimonscooked.view.screens.ResultScreen;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class GameManager {
     private static GameManager instance;
+    private static final ExecutorService threadPool = Executors.newFixedThreadPool(4);
 
     public OrderManager orderManager;
 
@@ -23,6 +27,7 @@ public class GameManager {
 
     private boolean gamePaused;
     private boolean isGameOver;
+    private float timeScale = 1.0f;
 
     public static GameManager getInstance() {
         if (instance == null) instance = new GameManager();
@@ -33,17 +38,23 @@ public class GameManager {
         reset();
     }
 
+    public static ExecutorService getThreadPool() {
+        return threadPool;
+    }
+
     public void update(float delta) {
         if (gamePaused || isGameOver) return;
 
-        levelTimer -= delta;
+        float scaledDelta = delta * timeScale;
+
+        levelTimer -= scaledDelta;
         if (levelTimer <= 0) {
             levelTimer = 0;
             triggerGameOver();
         }
 
         if (orderManager != null) {
-            orderManager.update(delta);
+            orderManager.update(scaledDelta);
         }
     }
 
@@ -75,6 +86,7 @@ public class GameManager {
         failedOrdersCount = 0;
         gamePaused = false;
         isGameOver = false;
+        timeScale = 1.0f;
 
         try {
             List<Recipe> loadedRecipes = RecipeLoader.loadRecipes("data/recipes.json");
@@ -85,10 +97,34 @@ public class GameManager {
         }
     }
 
+    public void setTimeScale(float scale) {
+        this.timeScale = Math.max(0.1f, Math.min(2.0f, scale));
+    }
+
+    public float getTimeScale() {
+        return timeScale;
+    }
+
     public float getLevelTimer() { return levelTimer; }
     public int getScore() { return score; }
     public int getFailedOrders() { return failedOrdersCount; }
     public boolean isPaused() { return gamePaused; }
     public void pauseGame() { gamePaused = true; }
     public void resumeGame() { gamePaused = false; }
+
+    public void dispose() {
+        shutdown();
+    }
+
+    public static void shutdown() {
+        threadPool.shutdown();
+        try {
+            if (!threadPool.awaitTermination(5, TimeUnit.SECONDS)) {
+                threadPool.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            threadPool.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
 }

@@ -12,6 +12,7 @@ import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
 import com.nimonscooked.model.station.Station;
+import com.nimonscooked.model.station.CookingStation;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,13 +23,10 @@ public class WorldRenderer {
     private ResourceManager resourceManager;
     private MapManager mapManager;
     private List<Renderable> renderList;
-
     private Animation<TextureRegion> idleDown, idleUp, idleSide;
     private Animation<TextureRegion> walkDown, walkUp, walkSide;
     private Animation<TextureRegion> chopAnim;
-
     private static final float CHEF_SCALE = 1.8f;
-    private Texture shadowTexture;
 
     private interface Renderable extends Comparable<Renderable> {
         void render(SpriteBatch batch);
@@ -39,7 +37,6 @@ public class WorldRenderer {
         this.resourceManager = ResourceManager.getInstance();
         this.mapManager = MapManager.getInstance();
         this.renderList = new ArrayList<>();
-        this.shadowTexture = resourceManager.getTexture("stations/wall.png");
         initAnimations();
     }
 
@@ -105,9 +102,18 @@ public class WorldRenderer {
                         @Override public void render(SpriteBatch batch) {
                             String texName = getTextureForTile(tile.getSymbol());
                             Texture tex = resourceManager.getTexture(texName);
+                            
+                            Station s = tile.getStation();
+                            if (s instanceof CookingStation) {
+                                CookingStation cs = (CookingStation) s;
+                                if (cs.isActive()) {
+                                    texName = getActiveTextureForTile(tile.getSymbol());
+                                    tex = resourceManager.getTexture(texName);
+                                }
+                            }
+                            
                             if (tex != null) batch.draw(tex, col * size, row * size, size, size);
 
-                            Station s = tile.getStation();
                             if (s != null) {
                                 if (s.hasItem()) {
                                     Texture itemTex = resourceManager.getTexture(s.getItem().getTextureName());
@@ -116,10 +122,13 @@ public class WorldRenderer {
                                         batch.draw(itemTex, col*size+10, row*size+20 + bob, size*0.6f, size*0.6f);
                                     }
                                 }
+                                
                                 if (s.getItem() instanceof com.nimonscooked.model.utensil.CookingDevice) {
-                                    com.nimonscooked.model.utensil.CookingDevice device = (com.nimonscooked.model.utensil.CookingDevice) s.getItem();
+                                    com.nimonscooked.model.utensil.CookingDevice device = 
+                                        (com.nimonscooked.model.utensil.CookingDevice) s.getItem();
                                     if (device.isCooking() || device.getProgress() > 0) {
-                                        drawProgressBar(batch, col * size + 12, row * size + size + 15, device.getProgress(), false);
+                                        drawProgressBar(batch, col * size + 12, row * size + size + 15, 
+                                            device.getProgress(), false);
                                     }
                                 }
                             }
@@ -138,26 +147,31 @@ public class WorldRenderer {
                 @Override public int compareTo(Renderable o) { return Float.compare(o.getY(), this.getY()); }
                 @Override public void render(SpriteBatch batch) {
                     TextureRegion frame = getChefFrame(c);
+                    
                     float scaledSize = size * CHEF_SCALE;
                     float offsetXY = (scaledSize - size) / 2f;
                     float drawX = (c.visualPos.x * size) - offsetXY;
                     float drawY = (c.visualPos.y * size) - offsetXY + (size*0.4f);
-
-                    if (shadowTexture != null) {
-                        batch.setColor(0f, 0f, 0f, 0.4f);
-                        batch.draw(shadowTexture, drawX + 20, c.visualPos.y * size + 5, scaledSize - 40, 15);
-                    }
-
-                    if (c == mapManager.activeChef) batch.setColor(1, 1, 1, 1);
-                    else batch.setColor(0.6f, 0.6f, 0.6f, 1);
 
                     if (frame != null) {
                         boolean flip = (c.direction == Chef.Direction.LEFT);
                         if (frame.isFlipX() != flip) {
                             frame.flip(true, false);
                         }
+
+                        batch.setColor(0f, 0f, 0f, 0.4f); 
+                        float shadowHeight = scaledSize * 0.3f; 
+                        float shadowY = drawY - (shadowHeight * 0.2f); 
+                        batch.draw(frame, drawX, shadowY, scaledSize, shadowHeight);
+                        
+                        if (c == mapManager.activeChef) {
+                            batch.setColor(1, 1, 1, 1);
+                        } else {
+                            batch.setColor(0.6f, 0.6f, 0.6f, 1);
+                        }
                         batch.draw(frame, drawX, drawY, scaledSize, scaledSize);
                     }
+
                     batch.setColor(1, 1, 1, 1);
 
                     if (c.getInventory() != null) {
@@ -169,7 +183,8 @@ public class WorldRenderer {
                     }
 
                     if (c.isBusy() && c.getCurrentInteraction() != null) {
-                        drawProgressBar(batch, drawX + size/2, drawY + scaledSize, c.getCurrentInteraction().getProgress(), true);
+                        drawProgressBar(batch, drawX + size/2, drawY + scaledSize, 
+                            c.getCurrentInteraction().getProgress(), true);
                     }
                 }
             });
@@ -180,13 +195,26 @@ public class WorldRenderer {
         float width = 40f;
         float height = 6f;
         Texture blank = resourceManager.getTexture("stations/wall.png");
+        
         batch.setColor(0f, 0f, 0f, 1f);
         batch.draw(blank, x - 1, y - 1, width + 2, height + 2);
+        
         batch.setColor(0.2f, 0.2f, 0.2f, 1f);
         batch.draw(blank, x, y, width, height);
-        if (isChefAction) batch.setColor(0f, 0.8f, 1f, 1f);
-        else batch.setColor(0f, 1f, 0f, 1f);
-        batch.draw(blank, x, y, width * progress, height);
+        
+        if (isChefAction) {
+            batch.setColor(0f, 0.8f, 1f, 1f);
+        } else {
+            if (progress < 0.5f) {
+                batch.setColor(1f, 0.8f, 0f, 1f);
+            } else if (progress < 0.8f) {
+                batch.setColor(0f, 1f, 0f, 1f);
+            } else {
+                batch.setColor(1f, 0.3f, 0f, 1f);
+            }
+        }
+        
+        batch.draw(blank, x, y, width * Math.min(progress, 1f), height);
         batch.setColor(1, 1, 1, 1);
     }
 
@@ -228,5 +256,10 @@ public class WorldRenderer {
             case 'T': return "stations/trash.png";
             default: return "stations/floor.png";
         }
+    }
+
+    private String getActiveTextureForTile(char symbol) {
+        if (symbol == 'R') return "stations/stove_active.png";
+        return getTextureForTile(symbol);
     }
 }
