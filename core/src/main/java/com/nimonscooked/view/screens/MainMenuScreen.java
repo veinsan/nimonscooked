@@ -1,6 +1,7 @@
 package com.nimonscooked.view.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
@@ -152,9 +153,12 @@ public class MainMenuScreen extends ScreenAdapter {
         fullScreenCheck.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 if (fullScreenCheck.isChecked()) {
-                    Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
+                    Graphics.DisplayMode currentMode = Gdx.graphics.getDisplayMode();
+                    Gdx.graphics.setFullscreenMode(currentMode);
                 } else {
-                    Gdx.graphics.setWindowedMode(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT);
+                    Graphics.Monitor primaryMonitor = Gdx.graphics.getPrimaryMonitor();
+                    Graphics.DisplayMode displayMode = Gdx.graphics.getDisplayMode(primaryMonitor);
+                    Gdx.graphics.setWindowedMode(displayMode.width, displayMode.height);
                 }
             }
         });
