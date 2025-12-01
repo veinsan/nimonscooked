@@ -29,31 +29,37 @@ public class PlayerControl {
 
        
     }
-
+    public void gamemove(String input){
+        if (input.equals("W")) {
+            move(chef, Direction.UP);
+        } else if (input.equals("S")) {
+            move(chef, Direction.DOWN);
+        } else if (input.equals("A")) {
+            move(chef, Direction.LEFT);
+        } else if (input.equals("D")) {
+            move(chef, Direction.RIGHT);
+        }
+    }
     public void interact() {
         int rowtile = chef.getPosition().getRow() + chef.getDirection().dRow;
         int coltile = chef.getPosition().getCol() + chef.getDirection().dCol;
         if (gameMap.isValidPosition(rowtile, coltile)) {
             if (gameMap.getTile(rowtile, coltile).hasStation()) {
                Station station = gameMap.getTile(rowtile, coltile).getStation();
-               switch (station) {
-                    case AssemblyStation assemblyStation:
-                        // Logic for picking up ingredient
-                        break;
-                    case CookingStation cookingStation:
-                        // Logic for cooking item
-                        break;
-                    case IngredientStorage ingredientStorage:
-                        // Logic for plating item
-                        break;
-                    case ServingCounter servingCounter:
-                        // Logic for serving order
-                        break;
-                }
+               if (station instanceof IngredientStorage) {
+                   ((IngredientStorage) station).interact(chef);
+               } else if (station instanceof CookingStation) {
+                   ((CookingStation) station).interact(chef);
+               } else if (station instanceof AssemblyStation) {
+                   ((AssemblyStation) station).interact(chef);
+               } else if (station instanceof ServingCounter) {
+                   ((ServingCounter) station).interact(chef);
             }
         }
         
     }
 
   
-}
+    }
+
+    
