@@ -54,7 +54,14 @@ public class PlayerControl {
                    ((AssemblyStation) station).interact(chef);
                } else if (station instanceof ServingCounter) {
                    ((ServingCounter) station).interact(chef);
-            }
+                }else if (station instanceof TrashStation) {
+                   ((TrashStation) station).interact(chef);
+                } else if (station instanceof PlateStorage) {
+                   ((PlateStorage) station).interact(chef);
+                }else if (station instanceof WashingStation) {
+                   ((WashingStation) station).interact(chef);
+                }
+                
         }
         
     }
