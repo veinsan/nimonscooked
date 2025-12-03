@@ -1,75 +1,44 @@
 package com.nimonscooked.model.order;
 
-public class OrderTicket {
-    private final int id;
-    private final String dishName;     
-    private final int timeLimit;       
-    private int timeRemaining;         
-    private OrderStatus status;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-    public OrderTicket(int id, String dishName, int timeLimitSeconds) {
-        this.id = id;
-        this.dishName = dishName;
-        this.timeLimit = timeLimitSeconds;
-        this.timeRemaining = timeLimitSeconds;
-        this.status = OrderStatus.PENDING;
+public class OrderManager {
+
+    private final List<Order> orders = new ArrayList<>();
+
+    public Order createOrder(int position, String recipeName, int reward, int penalty, int timeLimitSeconds) {
+        Order order = new Order(position, recipeName, reward, penalty, timeLimitSeconds);
+        orders.add(order);
+        return order;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public String getDishName() {
-        return dishName;
-    }
-
-    public int getTimeLimit() {
-        return timeLimit;
-    }
-
-    public int getTimeRemaining() {
-        return timeRemaining;
-    }
-
-    public OrderStatus getStatus() {
-        return status;
-    }
-
-    public boolean isActive() {
-        return status == OrderStatus.PENDING;
-    }
-
-    public boolean isExpired() {
-        return status == OrderStatus.EXPIRED;
-    }
-
-    public boolean isServed() {
-        return status == OrderStatus.SERVED;
-    }
-
-   
-    public void tick(int deltaSeconds) {
-        if (!isActive()) return; 
-
-        timeRemaining -= deltaSeconds;
-        if (timeRemaining <= 0) {
-            timeRemaining = 0;
-            status = OrderStatus.EXPIRED;
+    public void tickAll(int deltaSeconds) {
+        for (Order order : orders) {
+            order.tick(deltaSeconds);
         }
     }
 
-    
-    public void markServed() {
-        if (status == OrderStatus.PENDING) {
-            status = OrderStatus.SERVED;
+    public boolean serveByRecipeName(String recipeName) {
+        for (Order order : orders) {
+            if (order.isActive() && order.getRecipeName().equalsIgnoreCase(recipeName)) {
+                order.markServed();
+                return true;
+            }
         }
+        return false;
     }
 
-    @Override
-    public String toString() {
-        return String.format(
-                "#%d %-10s | %3ds/%3ds | %s",
-                id, dishName, timeRemaining, timeLimit, status
-        );
+    public List<Order> getAllOrders() {
+        return Collections.unmodifiableList(orders);
+    }
+
+    public List<Order> getActiveOrders() {
+        List<Order> active = new ArrayList<>();
+        for (Order o : orders) {
+            if (o.isActive()) active.add(o);
+        }
+        return active;
     }
 }
