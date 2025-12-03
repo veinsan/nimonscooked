@@ -1,5 +1,8 @@
 package com.nimonscooked.model.map;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GameMap {
     private final Tile[][] grid;
     private final int rows;
@@ -28,26 +31,25 @@ public class GameMap {
         return row >= 0 && row < rows && col >= 0 && col < cols;
     }
 
-    public int getRows() {
-        return rows;
+    public int getRows() { return rows; }
+    public int getCols() { return cols; }
+
+
+    public boolean isWalkable(int row, int col) {
+        Tile t = getTile(row, col);
+        return t != null && t.isWalkable();
     }
 
-    public int getCols() {
-        return cols;
-    }
-
-    public void render() {
-        for (int row = 0; row < rows; row++) {
-            StringBuilder lineBuilder = new StringBuilder();
-            for (int col = 0; col < cols; col++) {
-                Tile tile = grid[row][col];
-                if (tile != null) {
-                    lineBuilder.append(tile.getSymbol());
-                } else {
-                    lineBuilder.append('?');
+    public List<int[]> getSpawnPositions() {
+        List<int[]> result = new ArrayList<>();
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                Tile t = grid[r][c];
+                if (t != null && t.isSpawn()) {
+                    result.add(new int[]{r, c});
                 }
             }
-            System.out.println(lineBuilder.toString());
         }
+        return result;
     }
 }

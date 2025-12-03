@@ -6,8 +6,8 @@ import com.nimonscooked.model.Item;
 public class Tile {
     private TileType type;
     private char symbol;
-    private Station station; // nullable
-    private Item item; // nullable - item on floor
+    private Station station; 
+    private Item item;      
 
     public Tile(TileType type, char symbol) {
         this.type = type;
@@ -16,22 +16,22 @@ public class Tile {
 
     public TileType getType() { return type; }
     public char getSymbol() { return symbol; }
-    
+
     public Station getStation() { return station; }
-    public void setStation(Station station) { 
-        this.station = station; 
-    }
-    
+    public void setStation(Station station) { this.station = station; }
+
     public Item getItem() { return item; }
-    public void setItem(Item item) { 
-        this.item = item; 
+    public void setItem(Item item) { this.item = item; }
+
+    public boolean hasItem() { return item != null; }
+    public boolean hasStation() { return station != null; }
+
+
+    public boolean isWalkable() {
+        return type == TileType.FLOOR || type == TileType.SPAWN;
     }
-    
-    public boolean hasItem() {
-        return item != null;
-    }
-    
-    public boolean hasStation() {
-        return station != null;
+
+    public boolean isSpawn() {
+        return type == TileType.SPAWN;
     }
 }
