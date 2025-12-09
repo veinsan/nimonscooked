@@ -13,6 +13,6 @@
   },
   {
     "name": "Deluxe Burger",
-    "ingredients": ["Bun", "Meat_Cooked", "Cheese_Chopped", "Tomato_Chopped", "Lettuce_Chopped"]
+    "ingredients": ["Bun", "Meat_Cooked", "Cheese_Chopped", "Lettuce_Chopped"]
   }
 ]
