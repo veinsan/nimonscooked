@@ -19,6 +19,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array; // TAMBAHAN IMPORT
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -43,6 +44,10 @@ public class MainMenuScreen extends ScreenAdapter {
     private Label pressKeyLabel;
     private Image backgroundImage;
     
+    // List untuk navigasi keyboard
+    private Array<TextButton> menuButtons; 
+    private int currentSelection = 0; // 0 = New Game, 1 = HowTo, dst...
+
     // Overlay untuk blur/dim effect
     private Image overlayDim;
 
@@ -74,17 +79,13 @@ public class MainMenuScreen extends ScreenAdapter {
         stage = new Stage(new ScreenViewport());
         skin = ResourceManager.getInstance().getSkin();
         customFont = ResourceManager.getInstance().getCustomFont();
+        menuButtons = new Array<>(); // Inisialisasi Array
         generateStyles();
     }
 
     private void generateStyles() {
-        // Panel dengan transparansi lebih gelap untuk readability
         grayPanelDrawable = createColorDrawable(new Color(0.1f, 0.1f, 0.15f, 0.95f));
-        
-        // Dark overlay untuk dim background
         darkOverlayDrawable = createColorDrawable(new Color(0, 0, 0, 0.7f));
-        
-        // Separator line (gold)
         lineDrawable = createColorDrawable(new Color(0.9f, 0.8f, 0.5f, 0.5f));
     }
 
@@ -100,10 +101,7 @@ public class MainMenuScreen extends ScreenAdapter {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
-        
-        // IMPORTANT: Memastikan kursor terlihat (tidak tersembunyi)
         Gdx.input.setCursorCatched(false);
-        
         AudioManager.getInstance().playMusic("music/bgm_menu.mp3");
 
         rebuildUI();
@@ -116,8 +114,9 @@ public class MainMenuScreen extends ScreenAdapter {
 
     private void rebuildUI() {
         stage.clear();
+        menuButtons.clear(); // Bersihkan list tombol lama saat rebuild
 
-        // ============ RESPONSIVE BACKGROUND ============
+        // ============ BACKGROUND ============
         Texture bgTexture = ResourceManager.getInstance().getTexture("ui/title_bg.png");
         if (bgTexture != null) {
             backgroundImage = new Image(bgTexture);
@@ -126,7 +125,7 @@ public class MainMenuScreen extends ScreenAdapter {
             stage.addActor(backgroundImage);
         }
 
-        // ============ DARK OVERLAY (hidden by default) ============
+        // ============ DARK OVERLAY ============
         overlayDim = new Image(darkOverlayDrawable);
         overlayDim.setFillParent(true);
         overlayDim.setVisible(false);
@@ -143,13 +142,11 @@ public class MainMenuScreen extends ScreenAdapter {
     private void changeState(MenuState newState) {
         this.currentState = newState;
 
-        // Hide all menus
         if (landingTable != null) landingTable.setVisible(false);
         if (mainMenuTable != null) mainMenuTable.setVisible(false);
         if (optionsTable != null) optionsTable.setVisible(false);
         if (howToPlayTable != null) howToPlayTable.setVisible(false);
 
-        // Hide overlay by default
         overlayDim.setVisible(false);
 
         switch (newState) {
@@ -160,6 +157,8 @@ public class MainMenuScreen extends ScreenAdapter {
                 break;
             case MAIN_MENU:
                 mainMenuTable.setVisible(true);
+                currentSelection = 0; // Reset ke pilihan pertama
+                updateButtonVisuals(); // Update warna tombol
                 break;
             case OPTIONS:
                 showMenuPanel(optionsTable);
@@ -206,6 +205,7 @@ public class MainMenuScreen extends ScreenAdapter {
         ));
     }
 
+    // Listener Mouse (Klik & Hover)
     private ClickListener createButtonListener(final Runnable onAction) {
         return new ClickListener() {
             @Override
@@ -218,28 +218,39 @@ public class MainMenuScreen extends ScreenAdapter {
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 if (pointer == -1) {
-                    if (TimeUtils.millis() - lastClickTime > CLICK_BLOCK_DURATION) {
-                        AudioManager.getInstance().playSound(SFX_HOVER, 0.6f);
-                    }
+                    // Update currentSelection biar sinkron sama mouse hover
                     if (event.getListenerActor() instanceof TextButton) {
                         TextButton btn = (TextButton) event.getListenerActor();
-                        btn.getLabel().setColor(new Color(1f, 0.9f, 0.4f, 1f));
-                        btn.addAction(Actions.scaleTo(1.05f, 1.05f, 0.1f, Interpolation.pow2Out));
-                    }
-                }
-            }
-
-            @Override
-            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-                if (pointer == -1) {
-                    if (event.getListenerActor() instanceof TextButton) {
-                        TextButton btn = (TextButton) event.getListenerActor();
-                        btn.getLabel().setColor(Color.WHITE);
-                        btn.addAction(Actions.scaleTo(1f, 1f, 0.1f, Interpolation.pow2Out));
+                        int index = menuButtons.indexOf(btn, true);
+                        if (index != -1 && index != currentSelection) {
+                            currentSelection = index;
+                            updateButtonVisuals(); // Update visual semua tombol
+                            if (TimeUtils.millis() - lastClickTime > CLICK_BLOCK_DURATION) {
+                                AudioManager.getInstance().playSound(SFX_HOVER, 0.6f);
+                            }
+                        }
                     }
                 }
             }
         };
+    }
+
+    // Method baru untuk update warna tombol berdasarkan seleksi
+    private void updateButtonVisuals() {
+        for (int i = 0; i < menuButtons.size; i++) {
+            TextButton btn = menuButtons.get(i);
+            if (i == currentSelection) {
+                // Style untuk tombol TERPILIH (Warna Kuning + Sedikit Besar)
+                btn.getLabel().setColor(new Color(1f, 0.9f, 0.4f, 1f));
+                btn.setTransform(true); // Pastikan transform aktif biar bisa scale
+                btn.setScale(1.05f); 
+            } else {
+                // Style untuk tombol NORMAL (Warna Putih + Ukuran Normal)
+                btn.getLabel().setColor(Color.WHITE);
+                btn.setTransform(true);
+                btn.setScale(1f);
+            }
+        }
     }
 
     private Image createSeparator() {
@@ -276,13 +287,13 @@ public class MainMenuScreen extends ScreenAdapter {
         landingTable.setFillParent(true);
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        Label gameTitle = new Label("NIMONSCOOKED", titleStyle);
-        gameTitle.setFontScale(3.5f);
+        Label gameTitle = new Label("GASTROPATH", titleStyle);
+        gameTitle.setFontScale(6.5f); 
         gameTitle.setAlignment(Align.center);
 
-        Label.LabelStyle subtitleStyle = new Label.LabelStyle(customFont, new Color(0.9f, 0.8f, 0.5f, 1f));
-        Label subtitle = new Label("Champions of the Stack", subtitleStyle);
-        subtitle.setFontScale(1.3f);
+        Label.LabelStyle subtitleStyle = new Label.LabelStyle(customFont, Color.WHITE);
+        Label subtitle = new Label("Travelers of the Sacred Stack", subtitleStyle);
+        subtitle.setFontScale(2.2f);
         subtitle.setAlignment(Align.center);
 
         Label.LabelStyle promptStyle = new Label.LabelStyle(customFont, Color.WHITE);
@@ -291,7 +302,9 @@ public class MainMenuScreen extends ScreenAdapter {
         pressKeyLabel.setAlignment(Align.center);
 
         landingTable.add(gameTitle).expandY().padTop(200).row();
-        landingTable.add(subtitle).padTop(10).row();
+        // Atur spacing subtitle di sini
+        landingTable.add(subtitle).padTop(5f).row(); 
+
         landingTable.add().expand().row();
         landingTable.add(pressKeyLabel).bottom().padBottom(120);
 
@@ -303,8 +316,8 @@ public class MainMenuScreen extends ScreenAdapter {
         mainMenuTable.setFillParent(true);
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        Label gameTitle = new Label("NIMONSCOOKED", titleStyle);
-        gameTitle.setFontScale(2.8f);
+        Label gameTitle = new Label("GASTROPATH", titleStyle);
+        gameTitle.setFontScale(4.5f); 
         gameTitle.setAlignment(Align.center);
 
         TextButton.TextButtonStyle buttonStyle = createCustomButtonStyle();
@@ -314,10 +327,23 @@ public class MainMenuScreen extends ScreenAdapter {
         TextButton btnOption = new TextButton("Settings", buttonStyle);
         TextButton btnExit = new TextButton("Exit", buttonStyle);
 
+        // Tambahkan tombol ke Array untuk navigasi keyboard
+        menuButtons.add(btnStart);
+        menuButtons.add(btnHowTo);
+        menuButtons.add(btnOption);
+        menuButtons.add(btnExit);
+
+        // Pasang Listener Mouse (Original)
         btnStart.addListener(createButtonListener(this::startTransition));
         btnHowTo.addListener(createButtonListener(() -> changeState(MenuState.HOW_TO_PLAY)));
         btnOption.addListener(createButtonListener(() -> changeState(MenuState.OPTIONS)));
         btnExit.addListener(createButtonListener(() -> Gdx.app.exit()));
+
+        // Set origin ke tengah supaya efek scaling rapi (zoom dari tengah)
+        btnStart.setOrigin(Align.center);
+        btnHowTo.setOrigin(Align.center);
+        btnOption.setOrigin(Align.center);
+        btnExit.setOrigin(Align.center);
 
         mainMenuTable.add(gameTitle).padTop(150).padBottom(100).row();
         mainMenuTable.add(btnStart).width(400).height(70).pad(12).row();
@@ -330,6 +356,7 @@ public class MainMenuScreen extends ScreenAdapter {
 
     private void buildOptionsTable() {
         optionsTable = new Table();
+        // Atur ukuran background Settings di sini
         optionsTable.setSize(1000, 750);
         optionsTable.setPosition(
             (stage.getWidth() - 1000) / 2f,
@@ -351,8 +378,6 @@ public class MainMenuScreen extends ScreenAdapter {
         CheckBox fullScreenCheck = new CheckBox("  Fullscreen Mode", skin);
         fullScreenCheck.getLabel().setFontScale(1.4f);
         fullScreenCheck.getLabel().setColor(Color.WHITE);
-        
-        // Cek status saat ini (Kalau mulai windowed, ini akan false)
         fullScreenCheck.setChecked(Gdx.graphics.isFullscreen());
         
         fullScreenCheck.addListener(new ChangeListener() {
@@ -362,7 +387,6 @@ public class MainMenuScreen extends ScreenAdapter {
                 if (fullScreenCheck.isChecked()) {
                     Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
                 } else {
-                    // Gunakan konfigurasi default game saat kembali ke windowed
                     Gdx.graphics.setWindowedMode(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT);
                 }
                 resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -414,28 +438,19 @@ public class MainMenuScreen extends ScreenAdapter {
         }));
 
         optionsTable.defaults().padBottom(15);
-        
         optionsTable.add(titleLabel).colspan(3).padBottom(35).row();
         optionsTable.add(createSeparator()).colspan(3).growX().padBottom(40).row();
-
         optionsTable.add(videoLabel).colspan(3).left().padBottom(20).row();
         optionsTable.add(fullScreenCheck).colspan(3).left().padLeft(30).padBottom(30).row();
-
         optionsTable.add(createSeparator()).colspan(3).growX().padBottom(40).row();
-
         optionsTable.add(audioLabel).colspan(3).left().padBottom(20).row();
-
         optionsTable.add(lblMaster).left().padLeft(30).width(300).padBottom(20);
         optionsTable.add(sldMaster).fillX().height(40).colspan(2).padBottom(20).row();
-
         optionsTable.add(lblMusic).left().padLeft(30).width(300).padBottom(20);
         optionsTable.add(sldMusic).fillX().height(40).colspan(2).padBottom(20).row();
-
         optionsTable.add(lblSfx).left().padLeft(30).width(300).padBottom(20);
         optionsTable.add(sldSfx).fillX().height(40).colspan(2).padBottom(50).row();
-
         optionsTable.add(createSeparator()).colspan(3).growX().padBottom(40).row();
-
         optionsTable.add(btnBack).colspan(3).width(300).height(70);
 
         stage.addActor(optionsTable);
@@ -443,6 +458,7 @@ public class MainMenuScreen extends ScreenAdapter {
 
     private void buildHowToPlayTable() {
         howToPlayTable = new Table();
+        // Atur ukuran background How To Play di sini
         howToPlayTable.setSize(1100, 800);
         howToPlayTable.setPosition(
             (stage.getWidth() - 1100) / 2f,
@@ -501,8 +517,50 @@ public class MainMenuScreen extends ScreenAdapter {
         return style;
     }
 
+    private void handleInput() {
+        if (currentState == MenuState.MAIN_MENU && !menuButtons.isEmpty()) {
+            
+            // Panah Atas
+            if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+                currentSelection--;
+                if (currentSelection < 0) currentSelection = menuButtons.size - 1; // Loop ke bawah
+                updateButtonVisuals();
+                AudioManager.getInstance().playSound(SFX_HOVER, 0.6f);
+            }
+            
+            // Panah Bawah
+            if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+                currentSelection++;
+                if (currentSelection >= menuButtons.size) currentSelection = 0; // Loop ke atas
+                updateButtonVisuals();
+                AudioManager.getInstance().playSound(SFX_HOVER, 0.6f);
+            }
+
+            // Enter
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+                TextButton selectedBtn = menuButtons.get(currentSelection);
+                
+                // Simulasikan klik tombol
+                InputEvent event = new InputEvent();
+                
+                // 1. Tekan (TouchDown)
+                event.setType(InputEvent.Type.touchDown);
+                selectedBtn.fire(event);
+                
+                // 2. Lepas (TouchUp) -> Ini yang akan memicu method clicked()
+                event.setType(InputEvent.Type.touchUp);
+                selectedBtn.fire(event);
+                
+                // Baris error "event.setType(InputEvent.Type.clicked);" SUDAHDIHAPUS
+            }
+        }
+    }
+
     @Override
     public void render(float delta) {
+        // Handle input keyboard sebelum render
+        handleInput();
+
         if (fadingIn && fadeAlpha < 1f) {
             fadeAlpha += delta * 1.5f;
             if (fadeAlpha >= 1f) {
@@ -564,7 +622,6 @@ public class MainMenuScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
         
-        // Reposition panels after resize
         if (optionsTable != null) {
             optionsTable.setPosition(
                 (stage.getWidth() - 1000) / 2f,
