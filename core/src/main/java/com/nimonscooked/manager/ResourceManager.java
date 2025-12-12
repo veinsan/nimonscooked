@@ -15,6 +15,7 @@ public class ResourceManager implements Disposable {
 
     public final AssetManager assetManager;
 
+    // Path constants corresponding to your assets folder structure
     public static final String UI_SKIN_PATH = "ui/freezing-ui.json";
     public static final String CUSTOM_FONT_PATH = "font/pixel.fnt";
     public static final String TEXTURE_ROOT = "textures/";
@@ -25,81 +26,91 @@ public class ResourceManager implements Disposable {
     }
 
     public void loadAll() {
+        // --- UI & Font ---
+        // Loads the skin defined in assets/ui/freezing-ui.json
         assetManager.load(UI_SKIN_PATH, Skin.class);
+        // Loads the custom pixel font defined in assets/font/pixel.fnt
         assetManager.load(CUSTOM_FONT_PATH, BitmapFont.class);
 
-        loadTexture("ui/title_bg.png");
-        loadTexture("ui/warning.png");
-        loadTexture("ui/coin.png");
-        loadTexture("ui/wasd.png");
-        loadTexture("ui/key_1.png");
-        loadTexture("ui/key_e.png");
-        loadTexture("ui/key_f.png");
-
+        // --- Textures: Chef ---
+        loadTexture("chef/chef_chop.png");
         loadTexture("chef/chef_idle_down.png");
-        loadTexture("chef/chef_idle_up.png");
         loadTexture("chef/chef_idle_side.png");
+        loadTexture("chef/chef_idle_up.png");
         loadTexture("chef/chef_walk_down.png");
-        loadTexture("chef/chef_walk_up.png");
         loadTexture("chef/chef_walk_side.png");
+        loadTexture("chef/chef_walk_up.png");
 
-        loadTexture("stations/floor.png");
-        loadTexture("stations/wall.png");
-        loadTexture("stations/counter.png");
-        loadTexture("stations/cutting_board.png");
-        loadTexture("stations/stove.png");
-        loadTexture("stations/stove_active.png");
-        loadTexture("stations/oven.png");
-        loadTexture("stations/oven_active.png");
-        loadTexture("stations/crate.png");
-        loadTexture("stations/delivery.png");
-        loadTexture("stations/sink.png");
-        loadTexture("stations/trash.png");
-        loadTexture("stations/plate_shelf.png");
-        loadTexture("stations/plant.png");
-
-        loadTexture("items/plate.png");
-        loadTexture("items/plate_dirty.png");
-        loadTexture("items/pan.png");
-
+        // --- Textures: Ingredients ---
+        loadTexture("ingredients/blt_burger.png");
         loadTexture("ingredients/bun.png");
-        loadTexture("ingredients/meat_raw.png");
-        loadTexture("ingredients/meat_cooked.png");
-        loadTexture("ingredients/meat_burnt.png");
         loadTexture("ingredients/cheese.png");
+        loadTexture("ingredients/cheese_burger.png");
         loadTexture("ingredients/cheese_chopped.png");
-        loadTexture("ingredients/tomato.png");
-        loadTexture("ingredients/tomato_chopped.png");
+        loadTexture("ingredients/classic_burger.png");
+        loadTexture("ingredients/deluxe_burger.png");
         loadTexture("ingredients/lettuce.png");
         loadTexture("ingredients/lettuce_chopped.png");
-        loadTexture("ingredients/burger_complete.png");
+        loadTexture("ingredients/meat_burnt.png");
+        loadTexture("ingredients/meat_chopped.png");
+        loadTexture("ingredients/meat_cooked.png");
+        loadTexture("ingredients/meat_raw.png");
+        loadTexture("ingredients/tomato.png");
+        loadTexture("ingredients/tomato_chopped.png");
 
-        loadTexture("vfx/smoke.png");
-        loadTexture("vfx/fire.png");
-        loadTexture("vfx/sparkle.png");
-        loadTexture("vfx/circle.png");
+        // --- Textures: Items ---
+        loadTexture("items/plate.png");
+        loadTexture("items/plate_dirty.png");
 
-        for (int i = 1; i <= 5; i++) {
-            loadTexture("customer/" + i + "_neutral.png");
-            loadTexture("customer/" + i + "_angry.png");
-        }
+        // --- Textures: Stations ---
+        loadTexture("stations/assembly.png");
+        loadTexture("stations/crate_bread.png");
+        loadTexture("stations/crate_cheese.png");
+        loadTexture("stations/crate_lettuce.png");
+        loadTexture("stations/crate_meat.png");
+        loadTexture("stations/crate_tomato.png");
+        loadTexture("stations/cutting.png");
+        loadTexture("stations/floor.png");
+        loadTexture("stations/floor2.png");
+        loadTexture("stations/plate_storage.png");
+        loadTexture("stations/serving.png");
+        loadTexture("stations/sink.png");
+        loadTexture("stations/sink_active.png");
+        loadTexture("stations/stove_active_left.png");
+        loadTexture("stations/stove_active_right.png");
+        loadTexture("stations/stove_left.png");
+        loadTexture("stations/stove_right.png");
+        loadTexture("stations/trash.png");
+        loadTexture("stations/wall.png");
 
-        loadMusic("music/bgm_menu.mp3");
+        // --- Textures: UI ---
+        loadTexture("ui/title_bg.png");
+
+        // --- Audio: Music ---
         loadMusic("music/bgm_game.mp3");
-        loadMusic("music/fire_loop.mp3");
+        loadMusic("music/bgm_menu.mp3");
+        loadMusic("music/bgm_gameover.mp3");
 
-        loadSound("sfx/chop.mp3");
-        loadSound("sfx/fry.mp3");
-        loadSound("sfx/catch.mp3");
-        loadSound("sfx/delivery_success.wav");
-        loadSound("sfx/delivery_fail.wav");
+        // --- Audio: SFX ---
         loadSound("sfx/alarm.wav");
-        loadSound("sfx/extinguisher.wav");
+        loadSound("sfx/catch.mp3");
+        loadSound("sfx/chop.mp3");
+        loadSound("sfx/delivery_fail.wav");
+        loadSound("sfx/delivery_success.wav");
+        loadSound("sfx/fry.mp3");
         loadSound("sfx/trash.wav");
+        loadSound("sfx/click.mp3");
+        loadSound("sfx/hover.mp3");
 
+
+        // Blocks until all resources are loaded
         assetManager.finishLoading();
     }
 
+    /**
+     * Helper to load a texture. 
+     * Automatically prepends TEXTURE_ROOT (assets/textures/).
+     */
     private void loadTexture(String path) {
         try {
             assetManager.load(TEXTURE_ROOT + path, Texture.class);
@@ -108,19 +119,30 @@ public class ResourceManager implements Disposable {
         }
     }
 
+    /**
+     * Helper to load music. 
+     * Automatically prepends AUDIO_ROOT (assets/audio/).
+     */
     private void loadMusic(String path) {
         assetManager.load(AUDIO_ROOT + path, Music.class);
     }
 
+    /**
+     * Helper to load sound. 
+     * Automatically prepends AUDIO_ROOT (assets/audio/).
+     */
     private void loadSound(String path) {
         assetManager.load(AUDIO_ROOT + path, Sound.class);
     }
+
+    // --- Getters ---
 
     public Texture getTexture(String fileName) {
         String fullPath = TEXTURE_ROOT + fileName;
         if (assetManager.isLoaded(fullPath)) {
             return assetManager.get(fullPath, Texture.class);
         }
+        Gdx.app.error("ResourceManager", "Texture not loaded: " + fullPath);
         return null;
     }
 

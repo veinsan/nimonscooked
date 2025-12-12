@@ -18,15 +18,13 @@ public class Lwjgl3Launcher {
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
-
-        config.setTitle("Nimonscooked");
-
+        
+        config.setTitle("GASTROPATH: Travelers of the Sacred Stack");
         config.useVsync(true);
         config.setForegroundFPS(60);
-
+        config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode());
         config.setWindowedMode(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT);
-        config.setMaximized(true);
-        config.setResizable(false);
+        config.setResizable(true);
 
         return config;
     }
