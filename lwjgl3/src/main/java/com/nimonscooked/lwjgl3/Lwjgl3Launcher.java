@@ -22,7 +22,6 @@ public class Lwjgl3Launcher {
         config.setTitle("GASTROPATH: Travelers of the Sacred Stack");
         config.useVsync(true);
         config.setForegroundFPS(60);
-        config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode());
         config.setWindowedMode(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT);
         config.setResizable(true);
 

@@ -100,7 +100,8 @@ public class MainMenuScreen extends ScreenAdapter {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
-        // IMPORTANT: Enable cursor visibility
+        
+        // IMPORTANT: Memastikan kursor terlihat (tidak tersembunyi)
         Gdx.input.setCursorCatched(false);
         
         AudioManager.getInstance().playMusic("music/bgm_menu.mp3");
@@ -328,7 +329,6 @@ public class MainMenuScreen extends ScreenAdapter {
     }
 
     private void buildOptionsTable() {
-        // FIX: Panel lebih besar supaya semua konten muat
         optionsTable = new Table();
         optionsTable.setSize(1000, 750);
         optionsTable.setPosition(
@@ -338,13 +338,11 @@ public class MainMenuScreen extends ScreenAdapter {
         optionsTable.setBackground(grayPanelDrawable);
         optionsTable.pad(60);
 
-        // Title - PUTIH dan BESAR
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
         Label titleLabel = new Label("SETTINGS", titleStyle);
         titleLabel.setFontScale(3.0f);
         titleLabel.setAlignment(Align.center);
 
-        // Section headers - PUTIH dan BESAR
         Label.LabelStyle sectionStyle = new Label.LabelStyle(customFont, Color.WHITE);
         
         Label videoLabel = new Label("VIDEO", sectionStyle);
@@ -353,7 +351,10 @@ public class MainMenuScreen extends ScreenAdapter {
         CheckBox fullScreenCheck = new CheckBox("  Fullscreen Mode", skin);
         fullScreenCheck.getLabel().setFontScale(1.4f);
         fullScreenCheck.getLabel().setColor(Color.WHITE);
+        
+        // Cek status saat ini (Kalau mulai windowed, ini akan false)
         fullScreenCheck.setChecked(Gdx.graphics.isFullscreen());
+        
         fullScreenCheck.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -361,7 +362,8 @@ public class MainMenuScreen extends ScreenAdapter {
                 if (fullScreenCheck.isChecked()) {
                     Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
                 } else {
-                    Gdx.graphics.setWindowedMode(1280, 720);
+                    // Gunakan konfigurasi default game saat kembali ke windowed
+                    Gdx.graphics.setWindowedMode(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT);
                 }
                 resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             }
@@ -370,7 +372,6 @@ public class MainMenuScreen extends ScreenAdapter {
         Label audioLabel = new Label("AUDIO", sectionStyle);
         audioLabel.setFontScale(1.8f);
 
-        // Audio sliders - TEXT PUTIH dan LEBIH BESAR
         Label lblMaster = new Label("Master Volume", skin);
         lblMaster.setFontScale(1.4f);
         lblMaster.setColor(Color.WHITE);
@@ -412,7 +413,6 @@ public class MainMenuScreen extends ScreenAdapter {
             hideMenuPanel(optionsTable, () -> changeState(MenuState.MAIN_MENU));
         }));
 
-        // FIX: Layout yang lebih proper dengan spacing konsisten
         optionsTable.defaults().padBottom(15);
         
         optionsTable.add(titleLabel).colspan(3).padBottom(35).row();
@@ -425,7 +425,6 @@ public class MainMenuScreen extends ScreenAdapter {
 
         optionsTable.add(audioLabel).colspan(3).left().padBottom(20).row();
 
-        // FIX: Semua slider sejajar dengan label-nya
         optionsTable.add(lblMaster).left().padLeft(30).width(300).padBottom(20);
         optionsTable.add(sldMaster).fillX().height(40).colspan(2).padBottom(20).row();
 
@@ -443,7 +442,6 @@ public class MainMenuScreen extends ScreenAdapter {
     }
 
     private void buildHowToPlayTable() {
-        // FIX: Panel lebih besar supaya background nutupin semua
         howToPlayTable = new Table();
         howToPlayTable.setSize(1100, 800);
         howToPlayTable.setPosition(
@@ -453,7 +451,6 @@ public class MainMenuScreen extends ScreenAdapter {
         howToPlayTable.setBackground(grayPanelDrawable);
         howToPlayTable.pad(60);
 
-        // Title - PUTIH dan BESAR
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
         Label title = new Label("HOW TO PLAY", titleStyle);
         title.setFontScale(3.0f);
@@ -469,7 +466,6 @@ public class MainMenuScreen extends ScreenAdapter {
             "Prepare ingredients, cook them perfectly,\n" +
             "assemble delicious dishes, and serve them!";
 
-        // Content - PUTIH dan LEBIH BESAR
         Label.LabelStyle contentStyle = new Label.LabelStyle(customFont, Color.WHITE);
         Label content = new Label(instructions, contentStyle);
         content.setAlignment(Align.center);
