@@ -19,7 +19,7 @@ public class ResultScreen extends ScreenAdapter {
     private boolean isWin;
     private BitmapFont font;
     private GlyphLayout layout = new GlyphLayout();
-    private Texture pixelTexture;
+    private Texture backgroundTexture; 
     
     private float blinkTimer = 0f;
     private boolean showHint = true;
@@ -29,24 +29,15 @@ public class ResultScreen extends ScreenAdapter {
         this.finalScore = score;
         this.isWin = isWin;
         this.font = ResourceManager.getInstance().getCustomFont();
-        this.pixelTexture = createPixelTexture();
+        
+        // Ensure "ui/score_bg.jpg" is loaded in ResourceManager!
+        this.backgroundTexture = ResourceManager.getInstance().getTexture("ui/score.png");
         
         if (isWin) {
             AudioManager.getInstance().playSound("sfx/delivery_success.wav");
         } else {
             AudioManager.getInstance().playSound("sfx/delivery_fail.wav");
         }
-    }
-
-    private Texture createPixelTexture() {
-        com.badlogic.gdx.graphics.Pixmap pixmap = 
-            new com.badlogic.gdx.graphics.Pixmap(1, 1, 
-                com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.WHITE);
-        pixmap.fill();
-        Texture tex = new Texture(pixmap);
-        pixmap.dispose();
-        return tex;
     }
 
     @Override
@@ -57,50 +48,55 @@ public class ResultScreen extends ScreenAdapter {
             showHint = !showHint;
         }
 
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
+        // Clear screen
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         NimonscookedGame.instance.batch.begin();
 
-        drawBackground();
+        // 1. Draw the Background
+        if (backgroundTexture != null) {
+            NimonscookedGame.instance.batch.setColor(Color.WHITE);
+            NimonscookedGame.instance.batch.draw(backgroundTexture, 0, 0, GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT);
+        }
 
-        String title = isWin ? "STAGE CLEARED!" : "STAGE FAILED";
-        String scoreText = "Final Score: " + finalScore;
-        String gradeText = getGrade(finalScore);
-        String hint = "Press ENTER to Return to Menu";
+        float centerX = GameConfig.SCREEN_WIDTH / 2f;
+        float centerY = GameConfig.SCREEN_HEIGHT / 2f;
 
-        font.getData().setScale(2.5f);
-        font.setColor(isWin ? Color.GREEN : Color.RED);
-        layout.setText(font, title);
-        font.draw(NimonscookedGame.instance.batch, title,
-                (GameConfig.SCREEN_WIDTH - layout.width) / 2,
-                GameConfig.SCREEN_HEIGHT / 2 + 150);
+        // 2. Draw Score Number (WHITE with Outline)
+        String scoreNum = String.valueOf(finalScore);
+        font.getData().setScale(3.5f);
+        layout.setText(font, scoreNum);
+        
+        drawTextWithOutline(scoreNum, 
+            centerX - layout.width / 2f, 
+            centerY + 60, 
+            4f); // 4px thick outline
 
-        font.getData().setScale(2.0f);
-        font.setColor(Color.YELLOW);
+        // 3. Draw Grade (WHITE with Outline)
+        String gradeText = "Grade: " + getGrade(finalScore);
+        font.getData().setScale(1.8f);
         layout.setText(font, gradeText);
-        font.draw(NimonscookedGame.instance.batch, gradeText,
-                (GameConfig.SCREEN_WIDTH - layout.width) / 2,
-                GameConfig.SCREEN_HEIGHT / 2 + 80);
+        
+        drawTextWithOutline(gradeText, 
+            centerX - layout.width / 2f, 
+            centerY - 100, 
+            2f); // 2px thick outline
 
-        font.getData().setScale(1.5f);
-        font.setColor(Color.WHITE);
-        layout.setText(font, scoreText);
-        font.draw(NimonscookedGame.instance.batch, scoreText,
-                (GameConfig.SCREEN_WIDTH - layout.width) / 2,
-                GameConfig.SCREEN_HEIGHT / 2);
-
+        // 4. Draw Hint at bottom
         if (showHint) {
+            String hint = "Press ENTER to Continue";
             font.getData().setScale(1.0f);
-            font.setColor(Color.LIGHT_GRAY);
+            font.setColor(Color.LIGHT_GRAY); 
             layout.setText(font, hint);
-            font.draw(NimonscookedGame.instance.batch, hint,
-                    (GameConfig.SCREEN_WIDTH - layout.width) / 2,
-                    100);
+            font.draw(NimonscookedGame.instance.batch, hint, 
+                centerX - layout.width / 2f, 
+                100);
         }
 
         NimonscookedGame.instance.batch.end();
 
+        // Input Handling
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             AudioManager.getInstance().playSound("sfx/catch.mp3");
             GameManager.getInstance().reset();
@@ -108,13 +104,20 @@ public class ResultScreen extends ScreenAdapter {
         }
     }
 
-    private void drawBackground() {
-        NimonscookedGame.instance.batch.setColor(0, 0, 0, 0.8f);
-        NimonscookedGame.instance.batch.draw(pixelTexture, 
-            0, 0, 
-            GameConfig.SCREEN_WIDTH, 
-            GameConfig.SCREEN_HEIGHT);
-        NimonscookedGame.instance.batch.setColor(Color.WHITE);
+    /**
+     * Helper to draw text with a black border (outline).
+     */
+    private void drawTextWithOutline(String text, float x, float y, float thickness) {
+        font.setColor(Color.BLACK);
+        // Draw offsets for shadow/outline effect
+        font.draw(NimonscookedGame.instance.batch, text, x - thickness, y);
+        font.draw(NimonscookedGame.instance.batch, text, x + thickness, y);
+        font.draw(NimonscookedGame.instance.batch, text, x, y - thickness);
+        font.draw(NimonscookedGame.instance.batch, text, x, y + thickness);
+        
+        // Draw main text on top
+        font.setColor(Color.WHITE);
+        font.draw(NimonscookedGame.instance.batch, text, x, y);
     }
 
     private String getGrade(int score) {
@@ -128,6 +131,6 @@ public class ResultScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
-        pixelTexture.dispose();
+        // Texture managed by ResourceManager
     }
 }

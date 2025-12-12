@@ -1,16 +1,16 @@
 package com.nimonscooked.manager;
 
-import com.badlogic.gdx.Gdx;
-import com.nimonscooked.NimonscookedGame;
-import com.nimonscooked.exception.GameLoadException;
-import com.nimonscooked.model.recipe.Recipe;
-import com.nimonscooked.view.screens.ResultScreen;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import com.badlogic.gdx.Gdx;
+import com.nimonscooked.NimonscookedGame;
+import com.nimonscooked.exception.GameLoadException;
+import com.nimonscooked.model.recipe.Recipe;
+import com.nimonscooked.view.screens.ResultScreen;
 
 public class GameManager {
     private static GameManager instance;
@@ -19,7 +19,7 @@ public class GameManager {
     public OrderManager orderManager;
 
     private float levelTimer;
-    private final float LEVEL_DURATION = 180f;
+    private final float LEVEL_DURATION = 100f;
     private int score;
     private int failedOrdersCount;
     private final int MAX_FAILED_ORDERS = 5;

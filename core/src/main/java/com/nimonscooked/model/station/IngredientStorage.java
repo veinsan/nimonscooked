@@ -12,8 +12,15 @@ public class IngredientStorage extends Station {
         this.ingredientName = ingredientName;
     }
 
+    // --- INI METHOD PENTING YANG SEBELUMNYA HILANG ---
+    // WorldRenderer butuh ini buat nentuin gambar crate (Meat/Cheese/dll)
+    public String getIngredientName() {
+        return ingredientName;
+    }
+
     @Override
     public void interact(Chef chef) {
+        // Cek jika tangan kosong, kasih bahan
         if (chef.getInventory() == null) {
             Ingredient newIngredient = createIngredient(ingredientName);
             chef.setInventory(newIngredient);
@@ -22,7 +29,9 @@ public class IngredientStorage extends Station {
     }
 
     private Ingredient createIngredient(String name) {
-        String basePath = "ingredients/" + name.toLowerCase();
+        // Pastikan path texture ini sesuai dengan aset kamu
+        // Misalnya: "ingredients/meat_raw.png"
+        String basePath = "ingredients/" + name.toLowerCase() + "_raw.png";
         return new Ingredient(name, basePath);
     }
 }

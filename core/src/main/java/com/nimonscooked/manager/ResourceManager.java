@@ -44,6 +44,7 @@ public class ResourceManager implements Disposable {
         // --- Textures: Ingredients ---
         loadTexture("ingredients/blt_burger.png");
         loadTexture("ingredients/bun.png");
+        loadTexture("ingredients/burger_random.png");
         loadTexture("ingredients/cheese.png");
         loadTexture("ingredients/cheese_burger.png");
         loadTexture("ingredients/cheese_chopped.png");
@@ -64,12 +65,14 @@ public class ResourceManager implements Disposable {
 
         // --- Textures: Stations ---
         loadTexture("stations/assembly.png");
+        loadTexture("stations/crate.png");
         loadTexture("stations/crate_bread.png");
         loadTexture("stations/crate_cheese.png");
         loadTexture("stations/crate_lettuce.png");
         loadTexture("stations/crate_meat.png");
         loadTexture("stations/crate_tomato.png");
         loadTexture("stations/cutting.png");
+        loadTexture("stations/cutting_active.png");
         loadTexture("stations/floor.png");
         loadTexture("stations/floor2.png");
         loadTexture("stations/plate_storage.png");
@@ -85,6 +88,11 @@ public class ResourceManager implements Disposable {
 
         // --- Textures: UI ---
         loadTexture("ui/title_bg.png");
+        loadTexture("ui/bg_winter.jpg");
+        loadTexture("ui/score.png");
+        loadTexture("ui/time.png");
+        loadTexture("ui/order.png");
+        loadTexture("ui/score_current.png");
 
         // --- Audio: Music ---
         loadMusic("music/bgm_game.mp3");
@@ -101,7 +109,6 @@ public class ResourceManager implements Disposable {
         loadSound("sfx/trash.wav");
         loadSound("sfx/click.mp3");
         loadSound("sfx/hover.mp3");
-
 
         // Blocks until all resources are loaded
         assetManager.finishLoading();

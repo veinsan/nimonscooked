@@ -11,7 +11,7 @@ public class ShaderManager {
     private Map<String, ShaderProgram> shaders;
     private ShaderProgram currentShader;
     
-    private static final String SHADER_PATH = "shaders/";
+    private static final String SHADER_PATH = "textures/shaders/";    
     
     private ShaderManager() {
         shaders = new HashMap<>();
@@ -27,13 +27,16 @@ public class ShaderManager {
     }
     
     private void loadShaders() {
+        // Original working shaders
         loadShader("default", "default.vert", "vignette.frag");
         loadShader("lighting", "default.vert", "lighting.frag");
-        loadShader("depth", "default.vert", "depth.frag");
-        loadShader("outline", "default.vert", "outline.frag");
-        loadShader("pixelart", "default.vert", "pixelart.frag");
-        loadShader("shadow", "default.vert", "shadow.frag");
-        loadShader("bloom", "default.vert", "bloom.frag");
+        
+        // NEW Octopath-style shaders
+        loadShader("advanced_lighting", "default.vert", "advanced_lighting.frag");
+        loadShader("atmospheric", "default.vert", "atmospheric.frag");
+        
+        // TAVERN shader - Warm & Bright! ⭐
+        loadShader("tavern", "default.vert", "tavern.frag");
         
         Gdx.app.log("ShaderManager", "Loaded " + shaders.size() + " shaders");
     }
