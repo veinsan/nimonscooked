@@ -95,9 +95,8 @@ public class GameManager {
         isGameOver = false;
         timeScale = 1.0f;
 
-        if (orderManager != null) {
-            orderManager = null;
-        }
+        // [NEW] Force MapManager to clean up and reload the map
+        MapManager.getInstance().reloadCurrentMap();
 
         try {
             List<Recipe> loadedRecipes = RecipeLoader.loadRecipes(GameConfig.RECIPES_PATH);

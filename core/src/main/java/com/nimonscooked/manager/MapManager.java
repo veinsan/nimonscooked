@@ -1,5 +1,10 @@
 package com.nimonscooked.manager;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.nimonscooked.factory.StationFactory;
@@ -7,11 +12,6 @@ import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
 import com.nimonscooked.model.station.Station;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class MapManager {
     private static MapManager instance;
@@ -34,10 +34,27 @@ public class MapManager {
         }
         return instance;
     }
+    private void cleanupCurrentMap() {
+        // 1. Stop Chefs (cancel interactions)
+        for (Chef c : chefs) {
+            c.interruptAction();
+            c.setInventory(null);
+        }
+        
+        // 2. Stop Stations (stop frying pan sounds/threads)
+        for (Station s : stationRegistry.values()) {
+            if (s.getItem() instanceof com.nimonscooked.model.utensil.CookingDevice) {
+                ((com.nimonscooked.model.utensil.CookingDevice) s.getItem()).stopCooking();
+            }
+        }
 
-    public void loadMap(String fileName) {
         chefs.clear();
         stationRegistry.clear();
+    }
+    public void loadMap(String fileName) {
+        // [NEW] Cleanup existing state before loading the new one
+        cleanupCurrentMap();
+
         currentMapFile = fileName;
 
         FileHandle file = Gdx.files.internal(fileName);
@@ -94,10 +111,7 @@ public class MapManager {
             activeChef = chefs.get(0);
         }
 
-        Gdx.app.log("MapManager", "Map loaded: " + fileName + 
-            " | Size: " + width + "x" + height + 
-            " | Chefs: " + chefs.size() + 
-            " | Stations: " + stationRegistry.size());
+        Gdx.app.log("MapManager", "Map loaded/reset: " + fileName);
     }
 
     private Tile.TileType determineTileType(char symbol) {
