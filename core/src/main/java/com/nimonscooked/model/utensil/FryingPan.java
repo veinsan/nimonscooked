@@ -13,7 +13,6 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
     private static final int MAX_CAPACITY = 1;
     private final List<Preparable> contents;
     
-    // Audio Tracking
     private long currentSoundId = -1;
     private String currentSoundFile = null;
 
@@ -52,7 +51,6 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
         } 
         
         Preparable p = contents.get(0);
-        // FIX: p.getName() sekarang VALID karena Preparable sudah diupdate.
         if (p.getName().equalsIgnoreCase("Meat")) { 
             Ingredient.State state = ((Ingredient) p).getState();
             if (state == Ingredient.State.BURNT) {
@@ -76,7 +74,6 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
 
     public boolean hasCookedFood() {
         if (contents.isEmpty()) return false;
-        // FIX: contents.get(0).getName() sekarang VALID
         Preparable p = contents.get(0); 
         if (!p.getName().equalsIgnoreCase("Meat")) return false; 
         return ((Ingredient) p).getState() == Ingredient.State.COOKED;
@@ -84,14 +81,12 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
 
     public boolean isFoodReady() {
         if (contents.isEmpty()) return false;
-        // FIX: contents.get(0).getName() sekarang VALID
         if (!contents.get(0).getName().equalsIgnoreCase("Meat")) return false; 
         
         Ingredient.State s = ((Ingredient) contents.get(0)).getState();
         return s == Ingredient.State.COOKED || s == Ingredient.State.BURNT;
     }
 
-    // --- METHOD AUDIO BARU (Dibutuhkan oleh CookingThread) ---
     public void playFrySound() {
         stopSound();
         currentSoundFile = "sfx/fry.mp3";
@@ -119,14 +114,12 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
             currentSoundFile = null;
         }
     }
-    // -----------------------------------------------------------
 
     @Override
     public void startCooking() {
         if (contents.isEmpty()) return;
         if (isCooking()) return; 
 
-        // Double check lagi: Hanya start kalau isinya Meat
         if (!contents.get(0).getName().equalsIgnoreCase("Meat")) {
             Gdx.app.error("FryingPan", "CRITICAL: Attempted to cook non-meat item.");
             return;

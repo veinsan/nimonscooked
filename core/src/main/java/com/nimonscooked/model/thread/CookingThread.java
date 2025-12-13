@@ -2,7 +2,7 @@ package com.nimonscooked.model.thread;
 
 import com.badlogic.gdx.Gdx;
 import com.nimonscooked.config.GameConfig;
-import com.nimonscooked.manager.AudioManager; // <--- FIX: Import yang hilang
+import com.nimonscooked.manager.AudioManager;
 import com.nimonscooked.model.ingredient.Preparable;
 import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.utensil.CookingDevice;
@@ -29,7 +29,6 @@ public class CookingThread extends Thread {
 
     @Override
     public void run() {
-        // FIX: contents.get(0).getName() sekarang valid
         if (ingredients.isEmpty() || !ingredients.get(0).getName().equalsIgnoreCase("Meat")) {
             Gdx.app.error("CookingThread", "Thread started with non-meat item, shutting down.");
             running = false;
@@ -42,7 +41,6 @@ public class CookingThread extends Thread {
             cookingPhase();
             if (!running) return;
 
-            // FIX: playDoneSound() sekarang valid
             if (device instanceof FryingPan) {
                 ((FryingPan) device).playDoneSound();
             }
@@ -52,7 +50,6 @@ public class CookingThread extends Thread {
         } catch (InterruptedException e) {
             running = false;
         } finally {
-            // FIX: stopSound() sekarang valid
             if (device instanceof FryingPan && !running) {
                 ((FryingPan) device).stopSound();
             }
@@ -63,7 +60,6 @@ public class CookingThread extends Thread {
         if (!running) return;
         synchronized (ingredients) {
             for (Preparable p : ingredients) {
-                // FIX: p.getName() sekarang valid
                 if (p.getName().equalsIgnoreCase("Meat") && p instanceof Ingredient) {
                      ((Ingredient) p).setState(state);
                 }
@@ -82,7 +78,6 @@ public class CookingThread extends Thread {
 
         synchronized (ingredients) {
             for (Preparable p : ingredients) {
-                // FIX: p.getName() sekarang valid
                 if (p.getName().equalsIgnoreCase("Meat")) {
                     p.cook(); 
                 }
@@ -104,9 +99,7 @@ public class CookingThread extends Thread {
         setIngredientsState(Ingredient.State.BURNT);
         
         if (device instanceof FryingPan) {
-            // FIX: stopSound() sekarang valid
             ((FryingPan) device).stopSound();
-            // FIX: AudioManager.getInstance() sekarang valid
             Gdx.app.postRunnable(() -> AudioManager.getInstance().playSound("sfx/trash.wav")); 
         }
     }

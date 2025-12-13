@@ -26,16 +26,13 @@ public class HudRenderer {
     private BitmapFont font;
     private Viewport hudViewport;
     private OrthographicCamera hudCamera;
-    
-    // UI Background Textures
+
     private Texture orderBg;
     private Texture scoreBg;
     private Texture timerBg;
-    
-    // Pixel texture for progress bars
+
     private Texture pixelTexture;
-    
-    // Custom Ink Color for text on paper
+
     private static final Color INK_COLOR = new Color(0.25f, 0.15f, 0.1f, 1f);
 
     public HudRenderer(SpriteBatch batch) {
@@ -43,7 +40,6 @@ public class HudRenderer {
         this.font = ResourceManager.getInstance().getCustomFont();
         this.pixelTexture = createPixelTexture();
 
-        // Load the UI textures
         ResourceManager rm = ResourceManager.getInstance();
         this.orderBg = rm.getTexture("ui/order.png");
         this.scoreBg = rm.getTexture("ui/score_current.png");
@@ -73,30 +69,27 @@ public class HudRenderer {
         batch.setProjectionMatrix(hudCamera.combined);
         batch.begin();
 
-        renderOrders(); // Top Left
-        renderScore();  // Bottom Left
-        renderTimer();  // Bottom Right
-        renderDashCooldown(); // Floating
+        renderOrders();
+        renderScore();
+        renderTimer();
+        renderDashCooldown();
 
         batch.end();
     }
 
     private void renderOrders() {
         if (orderBg == null) return;
-        
+
         List<Order> orders = GameManager.getInstance().orderManager.getActiveOrders();
 
-        // --- CONFIGURATION ---
-        float scale = 0.5f;       
-        float leftPadding = 10f;  
-        float topMargin = 10f;    
-        float gap = 5f;           
-        // ---------------------
+        float scale = 0.5f;
+        float leftPadding = 10f;
+        float topMargin = 10f;
+        float gap = 5f;
 
         float scrollWidth = orderBg.getWidth() * scale;
         float scrollHeight = orderBg.getHeight() * scale;
 
-        // Fixed Y position (Top of screen)
         float y = GameConfig.SCREEN_HEIGHT - topMargin - scrollHeight;
 
         for (int i = 0; i < orders.size(); i++) {
@@ -111,13 +104,12 @@ public class HudRenderer {
     }
 
     private void renderOrderContent(Order order, float bgX, float bgY, float bgWidth, float bgHeight, float scale) {
-        // --- 1. MAIN DISH IMAGE (Centered Top) ---
-        float iconSize = 160 * scale; // Made bigger
+        float iconSize = 160 * scale;
         float iconX = bgX + (bgWidth - iconSize) / 2f;
-        float iconY = bgY + (bgHeight * 0.43f); // Push higher up to make room below
+        float iconY = bgY + (bgHeight * 0.43f);
 
-        String dishTexturePath = "ingredients/burger_random.png"; 
-        
+        String dishTexturePath = "ingredients/burger_random.png";
+
         if (order.getRecipeName().contains("Classic")) dishTexturePath = "ingredients/classic_burger.png";
         else if (order.getRecipeName().contains("Cheese")) dishTexturePath = "ingredients/cheese_burger.png";
         else if (order.getRecipeName().contains("Deluxe")) dishTexturePath = "ingredients/deluxe_burger.png";
@@ -129,17 +121,15 @@ public class HudRenderer {
             batch.draw(dishTex, iconX, iconY, iconSize, iconSize);
         }
 
-        // --- 2. RECIPE NAME (Middle) ---
-        font.getData().setScale(0.8f * scale); 
+        font.getData().setScale(0.8f * scale);
         font.setColor(INK_COLOR);
-        
+
         GlyphLayout layout = new GlyphLayout(font, order.getRecipeName());
         float nameX = bgX + (bgWidth - layout.width) / 2f;
-        float nameY = iconY - (2 * scale); // Just below the burger
-        
+        float nameY = iconY - (2 * scale);
+
         font.draw(batch, order.getRecipeName(), nameX, nameY);
 
-        // --- 3. INGREDIENT LIST (Lower Middle) ---
         Recipe recipe = null;
         for (Recipe r : StationFactory.getCachedRecipes()) {
             if (r.getName().equals(order.getRecipeName())) {
@@ -150,20 +140,20 @@ public class HudRenderer {
 
         if (recipe != null) {
             List<Item> ingredients = recipe.getRequiredItems();
-            
-            float ingSize = 55 * scale; // Sizable, but fits in scroll
-            float spacing = 3 * scale; 
-            
+
+            float ingSize = 55 * scale;
+            float spacing = 3 * scale;
+
             float totalIngWidth = (ingredients.size() * ingSize) + ((ingredients.size() - 1) * spacing);
             float startIngX = bgX + (bgWidth - totalIngWidth) / 2f;
-            float startIngY = bgY + (bgHeight * 0.28f); // Positioned comfortably above the bar
+            float startIngY = bgY + (bgHeight * 0.28f);
 
             for (int i = 0; i < ingredients.size(); i++) {
                 Item item = ingredients.get(i);
                 Texture ingTex = ResourceManager.getInstance().getTexture(item.getTextureName());
-                
+
                 float currentX = startIngX + (i * (ingSize + spacing));
-                
+
                 if (ingTex != null) {
                     batch.setColor(1, 1, 1, 1);
                     batch.draw(ingTex, currentX, startIngY, ingSize, ingSize);
@@ -171,21 +161,18 @@ public class HudRenderer {
             }
         }
 
-        // --- 4. PROGRESS BAR (Inside Scroll Bottom) ---
-        float barWidth = bgWidth * 0.65f; // Narrower to ensure it doesn't hit scroll handles
+        float barWidth = bgWidth * 0.65f;
         float barHeight = 8 * scale;
-        float barX = bgX + (bgWidth - barWidth) / 2f; 
-        float barY = bgY + (bgHeight * 0.25f); // Lifted up from bottom edge
+        float barX = bgX + (bgWidth - barWidth) / 2f;
+        float barY = bgY + (bgHeight * 0.25f);
 
-        // Background bar
         batch.setColor(0.6f, 0.5f, 0.4f, 0.3f);
         batch.draw(pixelTexture, barX, barY, barWidth, barHeight);
-        
-        // Active bar
+
         batch.setColor(order.getProgressColor());
         batch.draw(pixelTexture, barX, barY, barWidth * order.getProgressPercentage(), barHeight);
-        
-        batch.setColor(Color.WHITE); // Reset color
+
+        batch.setColor(Color.WHITE);
     }
 
     private void renderScore() {
@@ -199,17 +186,18 @@ public class HudRenderer {
         float centerX = bgX + scoreBg.getWidth() / 2f;
         float centerY = bgY + scoreBg.getHeight() / 2f;
 
-        // --- BIG SCORE ---
-        font.getData().setScale(1.5f); 
+        font.getData().setScale(1.5f);
         font.setColor(INK_COLOR);
 
         String scoreStr = "Score: " + GameManager.getInstance().getScore();
         GlyphLayout layout = new GlyphLayout(font, scoreStr);
-        
-        // Centered vertically and horizontally
-        font.draw(batch, scoreStr, 
-            centerX - layout.width / 2f, 
-            centerY + layout.height / 2f);
+
+        font.draw(
+            batch,
+            scoreStr,
+            centerX - layout.width / 2f,
+            centerY + layout.height / 2f
+        );
     }
 
     private void renderTimer() {
@@ -225,15 +213,14 @@ public class HudRenderer {
         int seconds = (int) timer % 60;
         String timeStr = String.format("%02d:%02d", minutes, seconds);
 
-        // --- BIG TIMER ---
-        float textX = bgX + 40; 
-        float textY = bgY + timerBg.getHeight() / 2f + 15; 
+        float textX = bgX + 40;
+        float textY = bgY + timerBg.getHeight() / 2f + 15;
 
-        font.getData().setScale(2.2f); 
-        
+        font.getData().setScale(2.2f);
+
         if (timer < 30) font.setColor(Color.RED);
         else font.setColor(INK_COLOR);
-        
+
         font.draw(batch, timeStr, textX, textY);
     }
 
@@ -251,11 +238,8 @@ public class HudRenderer {
     }
 
     public void dispose() {
-        // Dispose pixelTexture yang kita create sendiri
         if (pixelTexture != null) {
             pixelTexture.dispose();
         }
-        // orderBg, scoreBg, timerBg, font managed by ResourceManager
-        // hudViewport doesn't need disposal
     }
 }

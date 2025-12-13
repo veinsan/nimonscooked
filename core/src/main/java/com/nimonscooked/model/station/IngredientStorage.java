@@ -1,18 +1,19 @@
 package com.nimonscooked.model.station;
 
+import java.util.Collections;
+
 import com.badlogic.gdx.Gdx;
+import com.nimonscooked.model.dish.Dish;
 import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.utensil.Plate;
-import com.nimonscooked.model.dish.Dish;
-import java.util.Collections;
 
 public class IngredientStorage extends Station {
     private String ingredientName;
 
     public IngredientStorage(String id, String ingredientName, float x, float y) {
-        super(id, x, y, 64, 64); // ← FIX: Add x, y, 64, 64
+        super(id, x, y, 64, 64);
         this.ingredientName = ingredientName;
         
         if (ingredientName.equalsIgnoreCase("Bun")) {
@@ -38,6 +39,12 @@ public class IngredientStorage extends Station {
         // KASUS 2: Bawa Piring -> PLATING
         else if (heldItem instanceof Plate) {
             Plate plate = (Plate) heldItem;
+            
+            // [NEW] Reject Dirty Plates
+            if (!plate.isClean()) {
+                Gdx.app.log("Storage", "FAIL: Plate is dirty! Wash it first.");
+                return;
+            }
             
             if (plate.getContainedDish() == null) {
                 Ingredient newIngredient = createIngredient(ingredientName);

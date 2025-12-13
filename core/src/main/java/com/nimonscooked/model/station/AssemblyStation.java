@@ -29,11 +29,13 @@ public class AssemblyStation extends Station {
             this.setItem(heldItem);
             chef.setInventory(null);
             Gdx.app.log("AssemblyStation", "Placed " + heldItem.getDisplayName());
-        } else if (heldItem == null && stationItem != null) {
+        } 
+        else if (heldItem == null && stationItem != null) {
             chef.setInventory(stationItem);
             this.setItem(null);
             Gdx.app.log("AssemblyStation", "Took " + stationItem.getDisplayName());
-        } else if (heldItem instanceof Ingredient && stationItem != null) {
+        } 
+        else if (heldItem instanceof Ingredient && stationItem != null) {
             Item result = combine(stationItem, heldItem);
             if (result != null) {
                 this.setItem(result);
@@ -41,8 +43,21 @@ public class AssemblyStation extends Station {
                 Gdx.app.log("AssemblyStation", "Combined item into: " + result.getDisplayName());
             }
         }
+        else if (heldItem instanceof com.nimonscooked.model.utensil.Plate && stationItem instanceof Dish) {
+            com.nimonscooked.model.utensil.Plate plate = (com.nimonscooked.model.utensil.Plate) heldItem;
+        
+            if (!plate.isClean()) {
+                 Gdx.app.log("AssemblyStation", "FAIL: Cannot plate on dirty plate!");
+                 return;
+            }
+            
+            if (plate.getContainedDish() == null) {
+                plate.setContainedDish((Dish) stationItem);
+                this.setItem(null); 
+                Gdx.app.log("AssemblyStation", "Plated " + plate.getContainedDish().getDisplayName());
+            }
+        }
     }
-
     private Item combine(Item base, Item added) {
         List<Item> components = new ArrayList<>();
 

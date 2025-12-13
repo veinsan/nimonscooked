@@ -16,14 +16,13 @@ import com.nimonscooked.manager.MapManager;
 import com.nimonscooked.manager.ResourceManager;
 import com.nimonscooked.manager.ShaderManager;
 import com.nimonscooked.model.entity.Chef;
+import com.nimonscooked.model.ingredient.Preparable;
 import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
 import com.nimonscooked.model.station.*;
-import com.nimonscooked.model.utensil.CookingDevice;
 import com.nimonscooked.model.utensil.FryingPan;
-import com.nimonscooked.model.ingredient.Preparable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +39,6 @@ public class WorldRenderer {
     private Animation<TextureRegion> idleDown, idleUp, idleSide;
     private Animation<TextureRegion> walkDown, walkUp, walkSide;
     
-    // --- ANIMASI EFEK ---
     private Animation<TextureRegion> smokeAnim;
     private Animation<TextureRegion> chopAnim;
     
@@ -77,7 +75,6 @@ public class WorldRenderer {
     }
 
     private void initEffectAnimations() {
-        // 1. SMOKE EFFECT
         Texture smokeSheet = resourceManager.getTexture("effects/smoke.png");
         if (smokeSheet != null) {
             int FRAME_COLS = 8; 
@@ -86,10 +83,9 @@ public class WorldRenderer {
             smokeAnim.setPlayMode(Animation.PlayMode.LOOP);
         }
 
-        // 2. CHOP EFFECT
         Texture chopSheet = resourceManager.getTexture("effects/chop.png");
         if (chopSheet != null) {
-            int FRAME_COLS = 4; // Fix frame count
+            int FRAME_COLS = 4;
             TextureRegion[][] tmp = TextureRegion.split(chopSheet, chopSheet.getWidth() / FRAME_COLS, chopSheet.getHeight());
             chopAnim = new Animation<>(0.1f, tmp[0]);
             chopAnim.setPlayMode(Animation.PlayMode.LOOP);
@@ -168,7 +164,6 @@ public class WorldRenderer {
         return new Animation<>(duration, frames);
     }
 
-    // Helper untuk Logic, tapi Visual Highlight-nya ada di renderSelectionHighlight
     private Station getFacingStation() {
         Chef activeChef = mapManager.activeChef;
         if (activeChef == null) return null;
@@ -208,11 +203,7 @@ public class WorldRenderer {
         renderBackground(batch);
         renderMapShadow(batch, map);
         renderFloor(batch, map);
-        
-        // --- BARU: Render Highlight Box DI ATAS Lantai ---
         renderSelectionHighlight(batch);
-        // ------------------------------------------------
-        
         renderDroppedItems(batch, map);
         
         renderList.clear();
@@ -221,19 +212,16 @@ public class WorldRenderer {
         for (Renderable r : renderList) r.render(batch);
 
         renderChefs(batch);
-
         renderSnow(batch, delta);
         renderTooltip(batch, map);
 
         batch.setShader(null); 
     }
 
-    // --- METHOD BARU UNTUK HIGHLIGHT KOTAK INTERAKSI ---
     private void renderSelectionHighlight(SpriteBatch batch) {
         Chef activeChef = mapManager.activeChef;
         if (activeChef == null) return;
 
-        // Hitung koordinat grid di depan chef
         int targetCol = activeChef.position.col;
         int targetRow = activeChef.position.row;
 
@@ -244,37 +232,30 @@ public class WorldRenderer {
             case RIGHT: targetCol++; break;
         }
 
-        // Cek apakah koordinat valid
         if (mapManager.currentMap.isValid(targetCol, targetRow)) {
             float x = targetCol * GameConfig.TILE_SIZE;
             float y = targetRow * GameConfig.TILE_SIZE;
             
             Station station = mapManager.getStationAt(targetCol, targetRow);
             
-            // Logic Warna:
-            // Hijau Transparan = Ada Station (Bisa Interaksi)
-            // Putih Transparan = Kosong / Tembok Biasa
             if (station != null) {
-                batch.setColor(0f, 1f, 0f, 0.3f); // Green
+                batch.setColor(0f, 1f, 0f, 0.3f);
             } else {
-                batch.setColor(1f, 1f, 1f, 0.2f); // White
+                batch.setColor(1f, 1f, 1f, 0.2f);
             }
             
-            // Gambar Kotak Highlight
             batch.draw(pixelTexture, x, y, GameConfig.TILE_SIZE, GameConfig.TILE_SIZE);
             
-            // Outline (Optional: Biar lebih jelas)
-            batch.setColor(1f, 1f, 0f, 0.5f); // Kuning buat pinggiran
-            float t = 2f; // ketebalan outline
-            batch.draw(pixelTexture, x, y, GameConfig.TILE_SIZE, t); // Bawah
-            batch.draw(pixelTexture, x, y + GameConfig.TILE_SIZE - t, GameConfig.TILE_SIZE, t); // Atas
-            batch.draw(pixelTexture, x, y, t, GameConfig.TILE_SIZE); // Kiri
-            batch.draw(pixelTexture, x + GameConfig.TILE_SIZE - t, y, t, GameConfig.TILE_SIZE); // Kanan
+            batch.setColor(1f, 1f, 0f, 0.5f);
+            float t = 2f;
+            batch.draw(pixelTexture, x, y, GameConfig.TILE_SIZE, t);
+            batch.draw(pixelTexture, x, y + GameConfig.TILE_SIZE - t, GameConfig.TILE_SIZE, t);
+            batch.draw(pixelTexture, x, y, t, GameConfig.TILE_SIZE);
+            batch.draw(pixelTexture, x + GameConfig.TILE_SIZE - t, y, t, GameConfig.TILE_SIZE);
             
-            batch.setColor(Color.WHITE); // Reset color
+            batch.setColor(Color.WHITE);
         }
     }
-    // ---------------------------------------------------
 
     private void collectStations(GridMap map) {
         int size = GameConfig.TILE_SIZE;
@@ -297,7 +278,6 @@ public class WorldRenderer {
                             String texName = getTextureForTile(tile.getSymbol(), col, s);
                             boolean stationIsBeingHeld = false;
                             
-                            // STOVE LOGIC (COOKED/ACTIVE)
                             if (s instanceof CookingStation) {
                                 CookingStation cs = (CookingStation) s;
                                 boolean isCooked = false;
@@ -329,7 +309,6 @@ public class WorldRenderer {
                             }
                             
                             Texture tex = resourceManager.getTexture(texName);
-                            // Fallbacks
                             if (tex == null && texName.contains("crate")) tex = resourceManager.getTexture("stations/crate_meat.png");
                             if (tex == null && texName.contains("cutting")) tex = resourceManager.getTexture("stations/cutting.png");
                             if (tex == null && texName.contains("sink")) tex = resourceManager.getTexture("stations/sink.png");
@@ -345,16 +324,43 @@ public class WorldRenderer {
                             
                             batch.setColor(1f, 1f, 1f, 1f);
                             
-                            // ITEMS & EFFECTS
                             if (s != null) {
                                 if (s.hasItem() && !stationIsBeingHeld) {
-                                    String itemTexName = s.getItem().getTextureName();
+                                    Item item = s.getItem();
+                                    String itemTexName = item.getTextureName();
+                                    
                                     if (!itemTexName.equals("EMPTY_PAN")) {
                                         Texture itemTex = resourceManager.getTexture(itemTexName);
                                         if (itemTex != null) {
                                             float bob = (float)Math.sin(System.currentTimeMillis() / 200.0) * 2f;
+                                            
                                             batch.draw(itemTex, col*size+10, row*size+20 + bob, size*0.6f, size*0.6f);
+                                            
+                                            if (item instanceof com.nimonscooked.model.utensil.Plate) {
+                                                com.nimonscooked.model.utensil.Plate plate = (com.nimonscooked.model.utensil.Plate) item;
+                                                if (plate.getContainedDish() != null) {
+                                                    Texture dishTex = resourceManager.getTexture(plate.getContainedDish().getTextureName());
+                                                    if (dishTex != null) {
+                                                        batch.draw(dishTex, col*size+10, row*size+25 + bob, size*0.6f, size*0.6f);
+                                                    }
+                                                }
+                                            }
+                                            
                                             renderIngredientPopup(batch, col*size, row*size + bob, s.getItem());
+                                        }
+                                    }
+                                }
+                                else if (s instanceof PlateStorage) {
+                                    PlateStorage ps = (PlateStorage) s;
+                                    com.nimonscooked.model.utensil.Plate topPlate = ps.peekTopPlate();
+                                    
+                                    if (topPlate != null) {
+                                        String plateTexName = topPlate.isClean() ? "items/plate.png" : "items/plate_dirty.png";
+                                        Texture plateTex = resourceManager.getTexture(plateTexName);
+                                        
+                                        if (plateTex != null) {
+                                            float bob = (float)Math.sin(System.currentTimeMillis() / 500.0) * 2f;
+                                            batch.draw(plateTex, col * size + 10, row * size + 20 + bob, size * 0.7f, size * 0.7f);
                                         }
                                     }
                                 }
@@ -371,7 +377,6 @@ public class WorldRenderer {
                                             showBar = true; 
                                         }
                                         
-                                        // Render smoke effect
                                         boolean showSmoke = pan.isCooking();
                                         for(Preparable p : pan.getContents()) {
                                             if(p instanceof Ingredient && ((Ingredient)p).getState() == Ingredient.State.BURNT) {
@@ -394,12 +399,20 @@ public class WorldRenderer {
                                         showBar = true; 
                                     }
                                     
-                                    // Render chop effect when active
                                     if (cs.isActive() && chopAnim != null) {
                                         TextureRegion frame = chopAnim.getKeyFrame(stateTime, true);
                                         float effectSize = 64f; 
                                         float effectX = col * size + (size - effectSize)/2f;
                                         float effectY = row * size + (size - effectSize)/2f + 10;
+                                        
+                                        float shakeAmount = 3f;
+                                        float shakeSpeed = 18f;
+                                        float shakeX = (float)Math.sin(stateTime * shakeSpeed) * shakeAmount;
+                                        float shakeY = (float)Math.sin(stateTime * shakeSpeed * 1.3f) * (shakeAmount * 0.5f);
+                                        
+                                        effectX += shakeX;
+                                        effectY += shakeY;
+                                        
                                         batch.draw(frame, effectX, effectY, effectSize, effectSize);
                                     }
                                 } 
@@ -556,32 +569,54 @@ public class WorldRenderer {
             float offsetXY = (scaledSize - size) / 2f;
             float drawX = (c.visualPos.x * size) - offsetXY;
             float drawY = (c.visualPos.y * size) - offsetXY;
+            
             if (frame != null) {
                 boolean flip = (c.direction == Chef.Direction.LEFT);
                 if (frame.isFlipX() != flip) frame.flip(true, false);
+                
                 batch.setColor(0f, 0f, 0f, 0.3f); 
                 float shadowY = drawY - 5f;
                 batch.draw(frame, drawX, shadowY, scaledSize, scaledSize * 0.2f);
+                
                 if (c.getType() == Chef.Type.CHEF_A) {
                     batch.setColor(1f, 1f, 1f, 1f); 
                 } else {
                     batch.setColor(0.7f, 0.8f, 1f, 1f); 
                 }
+                
                 if (c != mapManager.activeChef) {
                     Color old = batch.getColor();
                     batch.setColor(old.r * 0.6f, old.g * 0.6f, old.b * 0.6f, 1f);
                 }
+                
                 batch.draw(frame, drawX, drawY, scaledSize, scaledSize);
             }
+            
             batch.setColor(1, 1, 1, 1);
+            
             if (c.getInventory() != null) {
-                Texture itemTex = resourceManager.getTexture(c.getInventory().getTextureName());
+                Item item = c.getInventory();
+                Texture itemTex = resourceManager.getTexture(item.getTextureName());
+                
                 if (itemTex != null) {
                     float bob = (float)Math.sin(c.stateTime * 5f) * 3f;
+                    
                     batch.draw(itemTex, drawX + size/2, drawY + scaledSize - 10 + bob, size*0.5f, size*0.5f);
+                    
+                    if (item instanceof com.nimonscooked.model.utensil.Plate) {
+                        com.nimonscooked.model.utensil.Plate plate = (com.nimonscooked.model.utensil.Plate) item;
+                        if (plate.getContainedDish() != null) {
+                            Texture dishTex = resourceManager.getTexture(plate.getContainedDish().getTextureName());
+                            if (dishTex != null) {
+                                batch.draw(dishTex, drawX + size/2, drawY + scaledSize - 5 + bob, size*0.5f, size*0.5f);
+                            }
+                        }
+                    }
+
                     renderIngredientPopup(batch, drawX, drawY + bob + 10, c.getInventory());
                 }
             }
+            
             if (c.isBusy() && c.getCurrentInteraction() != null) {
                 drawProgressBar(batch, drawX + size/4, drawY + scaledSize + 5, c.getCurrentInteraction().getProgress(), true);
             }

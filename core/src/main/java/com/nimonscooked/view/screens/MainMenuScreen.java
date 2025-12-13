@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch; //
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
@@ -50,8 +50,8 @@ public class MainMenuScreen extends ScreenAdapter {
     private Table howToPlayTable;
     private Label pressKeyLabel;
     private Image backgroundImage;
-    
-    private Array<TextButton> menuButtons; 
+
+    private Array<TextButton> menuButtons;
     private int currentSelection = 0;
 
     private Image overlayDim;
@@ -108,27 +108,23 @@ public class MainMenuScreen extends ScreenAdapter {
             public void draw(Batch batch, float parentAlpha) {
                 float x = getX();
                 float y = getY();
-                
-                // 1. Capture the original color values (not just the reference)
+
                 Color color = getColor();
                 float oldR = color.r;
                 float oldG = color.g;
                 float oldB = color.b;
                 float oldA = color.a;
-                
-                // 2. Draw Shadow (Set color to Black)
+
                 setColor(0, 0, 0, oldA * parentAlpha);
                 setPosition(x + 4, y - 4);
                 super.draw(batch, parentAlpha);
-                
-                // 3. Draw Text (Restore original color values)
+
                 setColor(oldR, oldG, oldB, oldA);
                 setPosition(x, y);
                 super.draw(batch, parentAlpha);
             }
         };
     }
-    // ---------------------------------------
 
     @Override
     public void show() {
@@ -205,7 +201,7 @@ public class MainMenuScreen extends ScreenAdapter {
         overlayDim.setVisible(true);
         overlayDim.getColor().a = 0f;
         overlayDim.addAction(Actions.fadeIn(0.3f));
-        
+
         panel.setVisible(true);
         panel.setScale(0.9f);
         panel.getColor().a = 0f;
@@ -213,7 +209,7 @@ public class MainMenuScreen extends ScreenAdapter {
             Actions.fadeIn(0.3f),
             Actions.scaleTo(1f, 1f, 0.3f, Interpolation.swingOut)
         ));
-        
+
         AudioManager.getInstance().playSound(SFX_MENU_OPEN);
     }
 
@@ -222,7 +218,7 @@ public class MainMenuScreen extends ScreenAdapter {
             Actions.fadeOut(0.25f),
             Actions.run(() -> overlayDim.setVisible(false))
         ));
-        
+
         panel.addAction(Actions.sequence(
             Actions.parallel(
                 Actions.fadeOut(0.25f),
@@ -269,7 +265,7 @@ public class MainMenuScreen extends ScreenAdapter {
             if (i == currentSelection) {
                 btn.getLabel().setColor(new Color(1f, 0.9f, 0.4f, 1f));
                 btn.setTransform(true);
-                btn.setScale(1.05f); 
+                btn.setScale(1.05f);
             } else {
                 btn.getLabel().setColor(Color.WHITE);
                 btn.setTransform(true);
@@ -287,7 +283,7 @@ public class MainMenuScreen extends ScreenAdapter {
     private void startTransition() {
         AudioManager.getInstance().stopMusic();
         AudioManager.getInstance().playSound(SFX_GAME_START);
-        
+
         changeState(MenuState.TRANSITION);
         isTransitioning = true;
         transitionAlpha = 0f;
@@ -298,11 +294,12 @@ public class MainMenuScreen extends ScreenAdapter {
         Label.LabelStyle style = new Label.LabelStyle(customFont, Color.WHITE);
         transitionLabel = new Label("LOADING...", style);
         transitionLabel.setFontScale(2.5f);
-        transitionLabel.setAlignment(Align.center);
-        transitionLabel.setPosition(
-            (stage.getWidth() - transitionLabel.getPrefWidth() * 2.5f) / 2f,
-            stage.getHeight() / 2f
-        );
+        transitionLabel.setAlignment(Align.left);
+
+        float paddingX = 40f;
+        float paddingY = 40f;
+
+        transitionLabel.setPosition(paddingX, paddingY);
         transitionLabel.setVisible(false);
         stage.addActor(transitionLabel);
     }
@@ -312,15 +309,11 @@ public class MainMenuScreen extends ScreenAdapter {
         landingTable.setFillParent(true);
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        
-        // Use shadow label for Title
         Label gameTitle = createShadowLabel("GASTROPATH", titleStyle);
-        gameTitle.setFontScale(6.5f); 
+        gameTitle.setFontScale(6.5f);
         gameTitle.setAlignment(Align.center);
 
         Label.LabelStyle subtitleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        
-        // Use shadow label for Subtitle
         Label subtitle = createShadowLabel("Travelers of the Sacred Stack", subtitleStyle);
         subtitle.setFontScale(2.2f);
         subtitle.setAlignment(Align.center);
@@ -331,8 +324,7 @@ public class MainMenuScreen extends ScreenAdapter {
         pressKeyLabel.setAlignment(Align.center);
 
         landingTable.add(gameTitle).expandY().padTop(200).row();
-        landingTable.add(subtitle).padTop(-220).row(); 
-
+        landingTable.add(subtitle).padTop(-220).row();
         landingTable.add().expand().row();
         landingTable.add(pressKeyLabel).bottom().padBottom(120);
 
@@ -344,10 +336,8 @@ public class MainMenuScreen extends ScreenAdapter {
         mainMenuTable.setFillParent(true);
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        
-        // Use shadow label for Main Menu Title
         Label gameTitle = createShadowLabel("GASTROPATH", titleStyle);
-        gameTitle.setFontScale(4.5f); 
+        gameTitle.setFontScale(4.5f);
         gameTitle.setAlignment(Align.center);
 
         TextButton.TextButtonStyle buttonStyle = createCustomButtonStyle();
@@ -392,22 +382,20 @@ public class MainMenuScreen extends ScreenAdapter {
         optionsTable.pad(60);
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        
-        // Use shadow label for Settings Title
         Label titleLabel = createShadowLabel("SETTINGS", titleStyle);
         titleLabel.setFontScale(3.0f);
         titleLabel.setAlignment(Align.center);
 
         Label.LabelStyle sectionStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        
+
         Label videoLabel = new Label("VIDEO", sectionStyle);
         videoLabel.setFontScale(1.8f);
-        
+
         CheckBox fullScreenCheck = new CheckBox("  Fullscreen Mode", skin);
         fullScreenCheck.getLabel().setFontScale(1.4f);
         fullScreenCheck.getLabel().setColor(Color.WHITE);
         fullScreenCheck.setChecked(Gdx.graphics.isFullscreen());
-        
+
         fullScreenCheck.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -467,22 +455,18 @@ public class MainMenuScreen extends ScreenAdapter {
 
         optionsTable.defaults().padBottom(15);
         optionsTable.add(titleLabel).colspan(3).padTop(-80).padBottom(35).row();
-
         optionsTable.add(createSeparator()).colspan(3).growX().padBottom(40).row();
         optionsTable.add(videoLabel).colspan(3).left().padBottom(20).row();
         optionsTable.add(fullScreenCheck).colspan(3).left().padLeft(30).padBottom(30).row();
         optionsTable.add(createSeparator()).colspan(3).growX().padBottom(40).row();
         optionsTable.add(audioLabel).colspan(3).left().padBottom(20).row();
 
-        // Master Volume
         optionsTable.add(lblMaster).left().padLeft(30).width(300).padBottom(20);
         optionsTable.add(sldMaster).fillX().height(40).colspan(2).padBottom(20).row();
 
-        // Music Volume
         optionsTable.add(lblMusic).left().padLeft(30).width(300).padBottom(20);
         optionsTable.add(sldMusic).fillX().height(40).colspan(2).padBottom(20).row();
 
-        // SFX Volume
         optionsTable.add(lblSfx).left().padLeft(30).width(300).padBottom(50);
         optionsTable.add(sldSfx).fillX().height(40).colspan(2).padBottom(50).row();
 
@@ -544,7 +528,7 @@ public class MainMenuScreen extends ScreenAdapter {
         style.fontColor = Color.WHITE;
         style.overFontColor = new Color(1f, 0.9f, 0.4f, 1f);
         style.downFontColor = new Color(0.8f, 0.7f, 0.3f, 1f);
-        
+
         if (skin.has("default", TextButton.TextButtonStyle.class)) {
             TextButton.TextButtonStyle skinStyle = skin.get(TextButton.TextButtonStyle.class);
             style.up = skinStyle.up;
@@ -578,14 +562,13 @@ public class MainMenuScreen extends ScreenAdapter {
         }
 
         if (currentState == MenuState.MAIN_MENU && !menuButtons.isEmpty()) {
-            
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
                 currentSelection--;
                 if (currentSelection < 0) currentSelection = menuButtons.size - 1;
                 updateButtonVisuals();
                 AudioManager.getInstance().playSound(SFX_HOVER, 0.6f);
             }
-            
+
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
                 currentSelection++;
                 if (currentSelection >= menuButtons.size) currentSelection = 0;
@@ -595,11 +578,11 @@ public class MainMenuScreen extends ScreenAdapter {
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
                 TextButton selectedBtn = menuButtons.get(currentSelection);
-                
+
                 InputEvent event = new InputEvent();
                 event.setType(InputEvent.Type.touchDown);
                 selectedBtn.fire(event);
-                
+
                 event.setType(InputEvent.Type.touchUp);
                 selectedBtn.fire(event);
             }
@@ -635,7 +618,7 @@ public class MainMenuScreen extends ScreenAdapter {
 
         if (isTransitioning) {
             transitionTimer += delta;
-            
+
             if (transitionTimer < TRANSITION_DURATION / 2f) {
                 transitionAlpha = transitionTimer / (TRANSITION_DURATION / 2f);
                 transitionLabel.setVisible(true);
@@ -649,14 +632,14 @@ public class MainMenuScreen extends ScreenAdapter {
                 NimonscookedGame.instance.setScreen(new GameScreen());
                 return;
             }
-            
+
             Gdx.gl.glClearColor(0, 0, 0, 1);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            
+
             stage.getBatch().begin();
             transitionLabel.draw(stage.getBatch(), transitionAlpha);
             stage.getBatch().end();
-            
+
             return;
         }
 
@@ -670,21 +653,21 @@ public class MainMenuScreen extends ScreenAdapter {
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
-        
+
         if (optionsTable != null) {
             optionsTable.setPosition(
                 (stage.getWidth() - 1000) / 2f,
                 (stage.getHeight() - 750) / 2f
             );
         }
-        
+
         if (howToPlayTable != null) {
             howToPlayTable.setPosition(
                 (stage.getWidth() - 1100) / 2f,
                 (stage.getHeight() - 800) / 2f
             );
         }
-        
+
         if (transitionLabel != null) {
             transitionLabel.setPosition(
                 (stage.getWidth() - transitionLabel.getPrefWidth() * 2.5f) / 2f,

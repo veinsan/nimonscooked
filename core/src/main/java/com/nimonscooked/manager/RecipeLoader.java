@@ -67,9 +67,7 @@ public class RecipeLoader {
         }
 
         Ingredient ing = new Ingredient(name, "ingredients/" + name.toLowerCase() + ".png");
-        
-        // FIX: Pakai forceState untuk bypass validasi transisi (misal RAW -> COOKED langsung)
-        // Karena ini adalah "definisi resep", bukan simulasi fisik.
+
         ing.forceState(state);
         
         return ing;

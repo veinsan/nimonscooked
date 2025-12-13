@@ -41,7 +41,6 @@ public class StationFactory {
         String id = symbol + "_" + col + "_" + row;
         Station station = null;
         
-        // Calculate pixel coordinates
         float pX = col * GameConfig.TILE_SIZE;
         float pY = row * GameConfig.TILE_SIZE;
 
