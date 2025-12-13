@@ -67,7 +67,6 @@ public class Ingredient extends Item implements Preparable {
         return state;
     }
 
-    // Method biasa (Pakai Validasi Game)
     public void setState(State newState) {
         if (newState == null) return;
         if (!isValidStateTransition(this.state, newState)) {
@@ -77,13 +76,11 @@ public class Ingredient extends Item implements Preparable {
         updateTexture();
     }
 
-    // --- FIX BARU: FORCE STATE (Untuk RecipeLoader) ---
     public void forceState(State newState) {
         if (newState == null) return;
-        this.state = newState; // Bypass validasi
+        this.state = newState;
         updateTexture();
     }
-    // --------------------------------------------------
 
     private void updateTexture() {
         String lowerName = this.name.toLowerCase();

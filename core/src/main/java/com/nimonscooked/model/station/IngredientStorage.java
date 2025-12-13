@@ -29,18 +29,15 @@ public class IngredientStorage extends Station {
     public void interact(Chef chef) {
         Item heldItem = chef.getInventory();
 
-        // KASUS 1: Tangan Kosong -> AMBIL
         if (heldItem == null) {
             Ingredient newIngredient = createIngredient(ingredientName);
             chef.setInventory(newIngredient);
             Gdx.app.log("Storage", "SUCCESS: Chef took " + newIngredient.getName());
         } 
         
-        // KASUS 2: Bawa Piring -> PLATING
         else if (heldItem instanceof Plate) {
             Plate plate = (Plate) heldItem;
             
-            // [NEW] Reject Dirty Plates
             if (!plate.isClean()) {
                 Gdx.app.log("Storage", "FAIL: Plate is dirty! Wash it first.");
                 return;
@@ -64,7 +61,6 @@ public class IngredientStorage extends Station {
             }
         }
         
-        // KASUS 3: TANGAN PENUH
         else {
             Gdx.app.log("Storage", "FAIL: Hands full! Holding: " + heldItem.getName());
         }

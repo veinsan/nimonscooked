@@ -18,7 +18,7 @@ public class Lwjgl3Launcher {
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
-        
+
         config.setTitle("GASTROPATH: Travelers of the Sacred Stack");
         config.useVsync(true);
         config.setForegroundFPS(60);

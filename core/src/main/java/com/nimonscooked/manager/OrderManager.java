@@ -20,7 +20,7 @@ public class OrderManager {
     private float nextOrderInterval;
 
     public OrderManager(List<Recipe> menu) {
-        this.availableRecipes = menu;
+        this.availableRecipes = new ArrayList<>(menu);
         this.activeOrders = new ArrayList<>();
         scheduleNextOrder();
     }
@@ -106,6 +106,6 @@ public class OrderManager {
     }
 
     public List<Order> getActiveOrders() {
-        return activeOrders;
+        return new ArrayList<>(activeOrders);
     }
 }

@@ -15,7 +15,7 @@ import com.nimonscooked.view.screens.ResultScreen;
 
 public class GameManager {
     private static GameManager instance;
-    private static final ExecutorService threadPool = Executors.newFixedThreadPool(4);
+    private static ExecutorService threadPool;
 
     public OrderManager orderManager;
 
@@ -28,15 +28,23 @@ public class GameManager {
     private float timeScale = 1.0f;
 
     public static GameManager getInstance() {
-        if (instance == null) instance = new GameManager();
+        if (instance == null) {
+            instance = new GameManager();
+        }
         return instance;
     }
 
     private GameManager() {
+        if (threadPool == null) {
+            threadPool = Executors.newFixedThreadPool(4);
+        }
         reset();
     }
 
     public static ExecutorService getThreadPool() {
+        if (threadPool == null) {
+            threadPool = Executors.newFixedThreadPool(4);
+        }
         return threadPool;
     }
 
@@ -87,6 +95,10 @@ public class GameManager {
         isGameOver = false;
         timeScale = 1.0f;
 
+        if (orderManager != null) {
+            orderManager = null;
+        }
+
         try {
             List<Recipe> loadedRecipes = RecipeLoader.loadRecipes(GameConfig.RECIPES_PATH);
             this.orderManager = new OrderManager(loadedRecipes);
@@ -133,14 +145,16 @@ public class GameManager {
     }
 
     public static void shutdown() {
-        threadPool.shutdown();
-        try {
-            if (!threadPool.awaitTermination(5, TimeUnit.SECONDS)) {
+        if (threadPool != null) {
+            threadPool.shutdown();
+            try {
+                if (!threadPool.awaitTermination(5, TimeUnit.SECONDS)) {
+                    threadPool.shutdownNow();
+                }
+            } catch (InterruptedException e) {
                 threadPool.shutdownNow();
+                Thread.currentThread().interrupt();
             }
-        } catch (InterruptedException e) {
-            threadPool.shutdownNow();
-            Thread.currentThread().interrupt();
         }
     }
 }

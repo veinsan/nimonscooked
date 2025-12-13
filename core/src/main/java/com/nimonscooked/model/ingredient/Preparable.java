@@ -10,5 +10,5 @@ public interface Preparable {
     boolean canBeCooked();
     void cook();
     
-    boolean canBePlacedOnPlate(); // ← ADD THIS
+    boolean canBePlacedOnPlate();
 }

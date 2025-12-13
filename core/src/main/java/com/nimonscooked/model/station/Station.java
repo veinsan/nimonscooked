@@ -8,14 +8,12 @@ public abstract class Station {
     protected String id;
     protected Item item;
     
-    // Bounding box untuk collision detection
     protected Rectangle bounds;
     
     public Station(String id, float x, float y, float width, float height) {
         this.id = id;
         this.item = null;
         
-        // Padding untuk hitbox yang lebih akurat
         float sidePadding = 6.0f;
         float topPadding = 6.0f;
         float bottomPadding = 6.0f;
@@ -30,9 +28,7 @@ public abstract class Station {
 
     public abstract void interact(Chef chef);
 
-    // DEFAULT IMPLEMENTATION: Override di subclass yang butuh hold
     public void processHold(Chef chef, float delta) {
-        // Do nothing by default
     }
 
     public String getId() {
@@ -51,7 +47,6 @@ public abstract class Station {
         return item != null;
     }
     
-    // Getter untuk collision system
     public Rectangle getBounds() {
         return bounds;
     }

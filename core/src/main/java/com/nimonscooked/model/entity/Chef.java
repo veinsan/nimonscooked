@@ -30,9 +30,8 @@ public class Chef {
     
     private static final float MOVE_SPEED = 3.5f;
     
-    // PERBAIKAN: Collision box yang lebih konsisten
-    private static final float COLLISION_RADIUS = 0.35f; // Radius dari center chef
-    private static final float COLLISION_OFFSET_Y = -0.15f; // Offset ke bawah untuk feet
+    private static final float COLLISION_RADIUS = 0.35f;
+    private static final float COLLISION_OFFSET_Y = -0.15f;
 
     public Chef(int startCol, int startRow, Type type) {
         this.position = new Position(startRow, startCol);
@@ -78,25 +77,17 @@ public class Chef {
         }
     }
 
-    /**
-     * PERBAIKAN UTAMA: Collision detection yang lebih konsisten
-     * Menggunakan circular collision box dengan 4 test points
-     */
     private boolean canMoveTo(float x, float y, GridMap map) {
-        // Center point dengan offset untuk feet
         float centerX = x;
         float centerY = y + COLLISION_OFFSET_Y;
         
-        // Test 4 points di sekitar collision circle
-        // Top, Bottom, Left, Right dari collision radius
         float[][] testPoints = {
-            {centerX, centerY + COLLISION_RADIUS},  // Top
-            {centerX, centerY - COLLISION_RADIUS},  // Bottom
-            {centerX - COLLISION_RADIUS, centerY},  // Left
-            {centerX + COLLISION_RADIUS, centerY}   // Right
+            {centerX, centerY + COLLISION_RADIUS},
+            {centerX, centerY - COLLISION_RADIUS},
+            {centerX - COLLISION_RADIUS, centerY},
+            {centerX + COLLISION_RADIUS, centerY}
         };
         
-        // Cek semua test points
         for (float[] point : testPoints) {
             int col = Math.round(point[0]);
             int row = Math.round(point[1]);
@@ -146,7 +137,6 @@ public class Chef {
         int targetCol = position.col;
         int targetRow = position.row;
         
-        // Test setiap tile dalam dash range
         for(int i = 1; i <= 3; i++) { 
             int checkCol = position.col + (dCol * i);
             int checkRow = position.row + (dRow * i);
@@ -157,14 +147,13 @@ public class Chef {
                     targetCol = checkCol;
                     targetRow = checkRow;
                 } else {
-                    break; // Stop jika ketemu obstacle
+                    break;
                 }
             } else {
-                break; // Stop jika keluar map
+                break;
             }
         }
         
-        // Hanya dash jika ada perubahan posisi
         if(targetCol != position.col || targetRow != position.row) {
             position.set(targetRow, targetCol);
             visualPos.set(targetCol, targetRow);

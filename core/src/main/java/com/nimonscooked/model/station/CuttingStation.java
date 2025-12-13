@@ -14,7 +14,7 @@ public class CuttingStation extends Station {
     private boolean isBeingHeld = false;
 
     public CuttingStation(String id, float x, float y) {
-        super(id, x, y, 64, 64); // ← FIX: Add x, y, 64, 64
+        super(id, x, y, 64, 64);
     }
 
     @Override
@@ -22,7 +22,6 @@ public class CuttingStation extends Station {
         Item heldItem = chef.getInventory();
         Item stationItem = this.getItem();
 
-        // PLACE ingredient untuk di-chop
         if (heldItem instanceof Ingredient && stationItem == null) {
             if (((Ingredient) heldItem).canBeChopped()) {
                 this.setItem(heldItem);
@@ -31,7 +30,6 @@ public class CuttingStation extends Station {
                 Gdx.app.log("CuttingStation", "Placed ingredient for chopping");
             }
         } 
-        // TAKE ingredient dari station (hanya kalau tidak lagi di-hold)
         else if (heldItem == null && stationItem != null && !isBeingHeld) {
             chef.setInventory(stationItem);
             this.setItem(null);
@@ -49,7 +47,7 @@ public class CuttingStation extends Station {
             
             if (ing.canBeChopped()) {
                 isBeingHeld = true;
-                chef.setBusy(true); // LOCK CHEF MOVEMENT
+                chef.setBusy(true);
                 holdProgress += delta;
                 
                 if (!hasPlayedSound) {
@@ -62,7 +60,7 @@ public class CuttingStation extends Station {
                     holdProgress = 0f;
                     hasPlayedSound = false;
                     isBeingHeld = false;
-                    chef.setBusy(false); // UNLOCK CHEF
+                    chef.setBusy(false);
                     Gdx.app.log("CuttingStation", "Ingredient chopped!");
                 }
             }
@@ -70,7 +68,7 @@ public class CuttingStation extends Station {
             if (isBeingHeld) {
                 isBeingHeld = false;
                 hasPlayedSound = false;
-                chef.setBusy(false); // UNLOCK CHEF kalau release key
+                chef.setBusy(false);
             }
         }
     }
