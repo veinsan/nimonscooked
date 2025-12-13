@@ -38,6 +38,7 @@ public class PlayerController {
 
         Chef activeChef = mapManager.activeChef;
 
+        // Logic Movement
         if (!activeChef.isBusy() && inputHandler.isMovementKeyPressed()) {
             activeChef.isMoving = true;
             Chef.Direction dir = inputHandler.getCurrentDirection();
@@ -53,15 +54,26 @@ public class PlayerController {
             activeChef.isMoving = false;
         }
 
+        // Logic Hold Interaction (Cuci/Potong)
         handleHoldInteraction(activeChef, delta);
 
+        // Logic Tap Interaction (Ambil/Taruh)
         if (inputCooldown > 0) {
             inputCooldown -= delta;
         } else {
             while (!inputHandler.commandQueue.isEmpty()) {
                 Command cmd = inputHandler.commandQueue.poll();
                 if (cmd != null) {
+                    // Eksekusi Command
                     cmd.execute(activeChef);
+                    
+                    // --- DEBUG KHUSUS INTERAKSI ---
+                    // Kalau command-nya Interact, kita cek dia kena station apa
+                    if (cmd instanceof com.nimonscooked.controller.command.InteractCommand) {
+                        debugInteraction(activeChef);
+                    }
+                    // ------------------------------
+                    
                     inputCooldown = ACTION_DELAY;
                     break;
                 }
@@ -72,6 +84,28 @@ public class PlayerController {
             switchChef();
             inputHandler.switchChefRequested = false;
             inputCooldown = ACTION_DELAY;
+        }
+    }
+
+    // Helper Debug buat ngecek Chef lagi madep mana & kena station apa
+    private void debugInteraction(Chef chef) {
+        int targetCol = chef.position.col;
+        int targetRow = chef.position.row;
+
+        switch (chef.direction) {
+            case UP: targetRow++; break;
+            case DOWN: targetRow--; break;
+            case LEFT: targetCol--; break;
+            case RIGHT: targetCol++; break;
+        }
+
+        Station s = mapManager.getStationAt(targetCol, targetRow);
+        if (s == null) {
+            // Kalau ini muncul, berarti posisi chef kurang pas (kejauhan/serong)
+            // Gdx.app.log("DebugInteract", "Missed! No station at " + targetCol + "," + targetRow);
+        } else {
+            // Kalau ini muncul tapi 'Chef took' nggak muncul, berarti masalah di IngredientStorage.interact
+            Gdx.app.log("DebugInteract", "Hit Station: " + s.getId() + " (" + s.getClass().getSimpleName() + ")");
         }
     }
 

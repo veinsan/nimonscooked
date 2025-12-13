@@ -42,6 +42,25 @@ public class AudioManager {
         }
     }
 
+    // --- FITUR BARU: LOOPING SOUND ---
+    public long playLoopingSound(String fileName) {
+        Sound sound = ResourceManager.getInstance().getSound(fileName);
+        if (sound != null) {
+            // Loop suara dan kembalikan ID supaya bisa distop nanti
+            return sound.loop(masterVolume * sfxVolume);
+        }
+        return -1;
+    }
+
+    public void stopLoopingSound(String fileName, long soundId) {
+        if (soundId == -1) return;
+        Sound sound = ResourceManager.getInstance().getSound(fileName);
+        if (sound != null) {
+            sound.stop(soundId);
+        }
+    }
+    // --------------------------------
+
     public void setMasterVolume(float vol) {
         this.masterVolume = vol;
         updateMusicVolume();

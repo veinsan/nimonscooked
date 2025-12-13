@@ -141,7 +141,7 @@ public class HudRenderer {
 
         // --- 3. INGREDIENT LIST (Lower Middle) ---
         Recipe recipe = null;
-        for (Recipe r : StationFactory.getCachedRecipes()) { //
+        for (Recipe r : StationFactory.getCachedRecipes()) {
             if (r.getName().equals(order.getRecipeName())) {
                 recipe = r;
                 break;
@@ -149,7 +149,7 @@ public class HudRenderer {
         }
 
         if (recipe != null) {
-            List<Item> ingredients = recipe.getRequiredItems(); //
+            List<Item> ingredients = recipe.getRequiredItems();
             
             float ingSize = 55 * scale; // Sizable, but fits in scroll
             float spacing = 3 * scale; 
@@ -160,7 +160,7 @@ public class HudRenderer {
 
             for (int i = 0; i < ingredients.size(); i++) {
                 Item item = ingredients.get(i);
-                Texture ingTex = ResourceManager.getInstance().getTexture(item.getTextureName()); //
+                Texture ingTex = ResourceManager.getInstance().getTexture(item.getTextureName());
                 
                 float currentX = startIngX + (i * (ingSize + spacing));
                 
@@ -251,6 +251,11 @@ public class HudRenderer {
     }
 
     public void dispose() {
-        if (pixelTexture != null) pixelTexture.dispose();
+        // Dispose pixelTexture yang kita create sendiri
+        if (pixelTexture != null) {
+            pixelTexture.dispose();
+        }
+        // orderBg, scoreBg, timerBg, font managed by ResourceManager
+        // hudViewport doesn't need disposal
     }
 }

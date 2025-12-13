@@ -1,18 +1,14 @@
 package com.nimonscooked.model.ingredient;
 
 public interface Preparable {
-    boolean canBeChopped();
-    boolean canBeCooked();
-    boolean canBePlacedOnPlate();
     
+    String getName();
+
+    boolean canBeChopped();
     void chop();
+
+    boolean canBeCooked();
     void cook();
     
-    default boolean isReadyToServe() {
-        return canBePlacedOnPlate();
-    }
-    
-    default boolean requiresPreparation() {
-        return canBeChopped() || canBeCooked();
-    }
+    boolean canBePlacedOnPlate(); // ← ADD THIS
 }

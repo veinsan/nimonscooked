@@ -6,8 +6,8 @@ import com.nimonscooked.model.item.Item;
 
 public class TrashStation extends Station {
 
-    public TrashStation(String id) {
-        super(id);
+    public TrashStation(String id, float x, float y) {
+        super(id, x, y, 64, 64);
     }
 
     @Override

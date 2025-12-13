@@ -1,5 +1,6 @@
 package com.nimonscooked.model.utensil;
 
+import com.badlogic.gdx.Gdx;
 import com.nimonscooked.manager.AudioManager;
 import com.nimonscooked.model.ingredient.Preparable;
 import com.nimonscooked.model.item.Ingredient;
@@ -9,35 +10,36 @@ import java.util.List;
 
 public class FryingPan extends KitchenUtensil implements CookingDevice {
 
-    private static final int MAX_CAPACITY = 3;
+    private static final int MAX_CAPACITY = 1;
     private final List<Preparable> contents;
+    
+    // Audio Tracking
+    private long currentSoundId = -1;
+    private String currentSoundFile = null;
 
     public FryingPan() {
-        super("Frying Pan", "items/pan.png");
+        super("Frying Pan", "EMPTY_PAN");
         this.contents = new ArrayList<>();
     }
 
     @Override
-    public boolean isPortable() {
-        return true;
-    }
-
+    public boolean isPortable() { return false; }
     @Override
-    public int capacity() {
-        return MAX_CAPACITY;
-    }
+    public int capacity() { return MAX_CAPACITY; }
 
     @Override
     public boolean canAccept(Preparable ingredient) {
         if (contents.size() >= MAX_CAPACITY) return false;
         if (!(ingredient instanceof Ingredient)) return false;
+        
         Ingredient ing = (Ingredient) ingredient;
-        return ing.getState() == Ingredient.State.CHOPPED || ing.getState() == Ingredient.State.RAW;
+        return ing.getState() == Ingredient.State.CHOPPED;
     }
 
     @Override
     public void addIngredient(Preparable ingredient) {
-        if (canAccept(ingredient)) {
+        if (contents.size() < MAX_CAPACITY) {
+            stopCooking();
             contents.add(ingredient);
             updateTexture();
         }
@@ -45,49 +47,103 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
 
     private void updateTexture() {
         if (contents.isEmpty()) {
-            this.textureName = "items/pan.png";
-        } else {
-            boolean hasCooked = false;
-            boolean hasBurnt = false;
-            
-            for (Preparable p : contents) {
-                if (p instanceof Ingredient) {
-                    Ingredient ing = (Ingredient) p;
-                    if (ing.getState() == Ingredient.State.BURNT) {
-                        hasBurnt = true;
-                        break;
-                    }
-                    if (ing.getState() == Ingredient.State.COOKED) {
-                        hasCooked = true;
-                    }
-                }
-            }
-            
-            if (hasBurnt) {
+            this.textureName = "EMPTY_PAN"; 
+            return;
+        } 
+        
+        Preparable p = contents.get(0);
+        // FIX: p.getName() sekarang VALID karena Preparable sudah diupdate.
+        if (p.getName().equalsIgnoreCase("Meat")) { 
+            Ingredient.State state = ((Ingredient) p).getState();
+            if (state == Ingredient.State.BURNT) {
                 this.textureName = "ingredients/meat_burnt.png";
-            } else if (hasCooked) {
+            } else if (state == Ingredient.State.COOKED) {
                 this.textureName = "ingredients/meat_cooked.png";
             } else {
                 this.textureName = "ingredients/meat_raw.png";
             }
+        } else {
+            this.textureName = "EMPTY_PAN"; 
+            Gdx.app.error("FryingPan", "Non-meat item detected in pan, visual suppressed.");
         }
     }
+
+    @Override
+    public String getTextureName() {
+        updateTexture();
+        return super.getTextureName();
+    }
+
+    public boolean hasCookedFood() {
+        if (contents.isEmpty()) return false;
+        // FIX: contents.get(0).getName() sekarang VALID
+        Preparable p = contents.get(0); 
+        if (!p.getName().equalsIgnoreCase("Meat")) return false; 
+        return ((Ingredient) p).getState() == Ingredient.State.COOKED;
+    }
+
+    public boolean isFoodReady() {
+        if (contents.isEmpty()) return false;
+        // FIX: contents.get(0).getName() sekarang VALID
+        if (!contents.get(0).getName().equalsIgnoreCase("Meat")) return false; 
+        
+        Ingredient.State s = ((Ingredient) contents.get(0)).getState();
+        return s == Ingredient.State.COOKED || s == Ingredient.State.BURNT;
+    }
+
+    // --- METHOD AUDIO BARU (Dibutuhkan oleh CookingThread) ---
+    public void playFrySound() {
+        stopSound();
+        currentSoundFile = "sfx/fry.mp3";
+        Gdx.app.postRunnable(() -> {
+            currentSoundId = AudioManager.getInstance().playLoopingSound(currentSoundFile);
+        });
+    }
+
+    public void playDoneSound() {
+        stopSound(); 
+        currentSoundFile = "sfx/done.mp3";
+        Gdx.app.postRunnable(() -> {
+            currentSoundId = AudioManager.getInstance().playLoopingSound(currentSoundFile);
+        });
+    }
+
+    public void stopSound() {
+        if (currentSoundId != -1 && currentSoundFile != null) {
+            String fileToStop = currentSoundFile;
+            long idToStop = currentSoundId;
+            Gdx.app.postRunnable(() -> {
+                AudioManager.getInstance().stopLoopingSound(fileToStop, idToStop);
+            });
+            currentSoundId = -1;
+            currentSoundFile = null;
+        }
+    }
+    // -----------------------------------------------------------
 
     @Override
     public void startCooking() {
         if (contents.isEmpty()) return;
-        if (cookingThread == null || !cookingThread.isAlive()) {
-            cookingThread = new CookingThread(this, contents);
-            cookingThread.start();
-            AudioManager.getInstance().playSound("sfx/fry.mp3");
-        }
-    }
+        if (isCooking()) return; 
 
+        // Double check lagi: Hanya start kalau isinya Meat
+        if (!contents.get(0).getName().equalsIgnoreCase("Meat")) {
+            Gdx.app.error("FryingPan", "CRITICAL: Attempted to cook non-meat item.");
+            return;
+        }
+
+        cookingThread = new CookingThread(this, contents);
+        cookingThread.start();
+        playFrySound();
+    }
+    
     @Override
     public void stopCooking() {
         if (cookingThread != null) {
             cookingThread.stopCooking();
+            cookingThread = null; 
         }
+        stopSound();
     }
 
     @Override
@@ -106,15 +162,9 @@ public class FryingPan extends KitchenUtensil implements CookingDevice {
 
     @Override
     public void clear() {
-        super.clear();
+        stopCooking();
         contents.clear();
         updateTexture();
-    }
-
-    @Override
-    public String getDisplayName() {
-        return contents.isEmpty()
-                ? "Frying Pan (Empty)"
-                : "Frying Pan (" + contents.size() + " items)";
+        super.clear();
     }
 }

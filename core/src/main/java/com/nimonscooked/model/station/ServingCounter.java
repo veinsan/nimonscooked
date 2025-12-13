@@ -1,18 +1,18 @@
 package com.nimonscooked.model.station;
 
+import java.util.concurrent.TimeUnit;
+
 import com.badlogic.gdx.Gdx;
 import com.nimonscooked.manager.GameManager;
 import com.nimonscooked.manager.MapManager;
+import com.nimonscooked.model.dish.Dish;
 import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.utensil.Plate;
-import com.nimonscooked.model.dish.Dish;
-
-import java.util.concurrent.TimeUnit;
 
 public class ServingCounter extends Station {
-    public ServingCounter(String id) {
-        super(id);
+    public ServingCounter(String id, float x, float y) {
+        super(id, x, y, 64, 64 );
     }
 
     @Override

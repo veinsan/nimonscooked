@@ -109,5 +109,8 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
+        // Tambahkan ini
+        if (worldRenderer != null) worldRenderer.dispose();
+        if (hudRenderer != null) hudRenderer.dispose();
     }
 }

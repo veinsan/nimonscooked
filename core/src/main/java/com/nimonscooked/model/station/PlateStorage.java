@@ -1,16 +1,17 @@
 package com.nimonscooked.model.station;
 
+import java.util.Stack;
+
 import com.badlogic.gdx.Gdx;
 import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.utensil.Plate;
-import java.util.Stack;
 
 public class PlateStorage extends Station {
 
     private Stack<Plate> plateStack;
 
-    public PlateStorage(String id) {
-        super(id);
+    public PlateStorage(String id, float x, float y) {
+        super(id, x, y, 64, 64);
         this.plateStack = new Stack<>();
         for (int i = 0; i < 4; i++) {
             Plate p = new Plate();

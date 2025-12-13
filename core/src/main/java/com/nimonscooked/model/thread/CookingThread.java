@@ -1,25 +1,27 @@
 package com.nimonscooked.model.thread;
 
 import com.badlogic.gdx.Gdx;
-import com.nimonscooked.manager.AudioManager;
+import com.nimonscooked.config.GameConfig;
+import com.nimonscooked.manager.AudioManager; // <--- FIX: Import yang hilang
 import com.nimonscooked.model.ingredient.Preparable;
 import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.utensil.CookingDevice;
+import com.nimonscooked.model.utensil.FryingPan;
 import java.util.List;
 
 public class CookingThread extends Thread {
 
     private final List<Preparable> ingredients;
+    private final CookingDevice device;
     private volatile boolean running = true;
 
-    private static final long TIME_TO_COOK = 10000;
-    private static final long TIME_TO_BURN = 8000;
-    private static final long BURN_WARNING_TIME = 6000;
+    private static final long TIME_TO_COOK = (long) (GameConfig.COOK_TIME * 1000);
+    private static final long TIME_TO_BURN = (long) (GameConfig.BURN_TIME * 1000);
 
     private float progress = 0f;
-    private boolean hasWarned = false;
 
     public CookingThread(CookingDevice device, List<Preparable> ingredients) {
+        this.device = device;
         this.ingredients = ingredients;
         setName("CookingThread-" + System.currentTimeMillis());
         setDaemon(true);
@@ -27,19 +29,50 @@ public class CookingThread extends Thread {
 
     @Override
     public void run() {
+        // FIX: contents.get(0).getName() sekarang valid
+        if (ingredients.isEmpty() || !ingredients.get(0).getName().equalsIgnoreCase("Meat")) {
+            Gdx.app.error("CookingThread", "Thread started with non-meat item, shutting down.");
+            running = false;
+            return;
+        }
+        
         try {
+            setIngredientsState(Ingredient.State.COOKING);
+            
             cookingPhase();
             if (!running) return;
+
+            // FIX: playDoneSound() sekarang valid
+            if (device instanceof FryingPan) {
+                ((FryingPan) device).playDoneSound();
+            }
+            
             burningPhase();
+            
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            Gdx.app.log("CookingThread", "Thread interrupted");
+            running = false;
+        } finally {
+            // FIX: stopSound() sekarang valid
+            if (device instanceof FryingPan && !running) {
+                ((FryingPan) device).stopSound();
+            }
+        }
+    }
+
+    private void setIngredientsState(Ingredient.State state) {
+        if (!running) return;
+        synchronized (ingredients) {
+            for (Preparable p : ingredients) {
+                // FIX: p.getName() sekarang valid
+                if (p.getName().equalsIgnoreCase("Meat") && p instanceof Ingredient) {
+                     ((Ingredient) p).setState(state);
+                }
+            }
         }
     }
 
     private void cookingPhase() throws InterruptedException {
         long startTime = System.currentTimeMillis();
-
         while (running && (System.currentTimeMillis() - startTime < TIME_TO_COOK)) {
             progress = (float) (System.currentTimeMillis() - startTime) / TIME_TO_COOK;
             Thread.sleep(100);
@@ -49,51 +82,33 @@ public class CookingThread extends Thread {
 
         synchronized (ingredients) {
             for (Preparable p : ingredients) {
-                p.cook();
+                // FIX: p.getName() sekarang valid
+                if (p.getName().equalsIgnoreCase("Meat")) {
+                    p.cook(); 
+                }
             }
         }
-
-        Gdx.app.postRunnable(() -> {
-            AudioManager.getInstance().playSound("sfx/fry.mp3");
-            Gdx.app.log("CookingThread", "Food is COOKED!");
-        });
-
         progress = 0f;
-        hasWarned = false;
     }
 
     private void burningPhase() throws InterruptedException {
         long startTime = System.currentTimeMillis();
-
         while (running && (System.currentTimeMillis() - startTime < TIME_TO_BURN)) {
             long elapsed = System.currentTimeMillis() - startTime;
             progress = (float) elapsed / TIME_TO_BURN;
-
-            if (!hasWarned && elapsed >= BURN_WARNING_TIME) {
-                hasWarned = true;
-                Gdx.app.postRunnable(() -> {
-                    AudioManager.getInstance().playSound("sfx/alarm.wav");
-                    Gdx.app.log("CookingThread", "WARNING: Food is about to BURN!");
-                });
-            }
-
             Thread.sleep(100);
         }
 
         if (!running) return;
 
-        synchronized (ingredients) {
-            for (Preparable p : ingredients) {
-                if (p instanceof Ingredient) {
-                    ((Ingredient) p).setState(Ingredient.State.BURNT);
-                }
-            }
+        setIngredientsState(Ingredient.State.BURNT);
+        
+        if (device instanceof FryingPan) {
+            // FIX: stopSound() sekarang valid
+            ((FryingPan) device).stopSound();
+            // FIX: AudioManager.getInstance() sekarang valid
+            Gdx.app.postRunnable(() -> AudioManager.getInstance().playSound("sfx/trash.wav")); 
         }
-
-        Gdx.app.postRunnable(() -> {
-            AudioManager.getInstance().playSound("sfx/trash.wav");
-            Gdx.app.log("CookingThread", "Food is BURNT!");
-        });
     }
 
     public void stopCooking() {
@@ -101,11 +116,6 @@ public class CookingThread extends Thread {
         interrupt();
     }
 
-    public float getProgress() {
-        return progress;
-    }
-
-    public boolean isRunning() {
-        return running && isAlive();
-    }
+    public float getProgress() { return progress; }
+    public boolean isRunning() { return running && isAlive(); }
 }

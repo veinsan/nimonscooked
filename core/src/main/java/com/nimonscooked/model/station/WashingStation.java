@@ -13,8 +13,8 @@ public class WashingStation extends Station {
     private boolean hasPlayedSound = false;
     private boolean isBeingHeld = false;
 
-    public WashingStation(String id) {
-        super(id);
+    public WashingStation(String id, float x, float y) {
+        super(id, x, y, 64, 64);
     }
 
     @Override
@@ -22,6 +22,7 @@ public class WashingStation extends Station {
         Item heldItem = chef.getInventory();
         Item stationItem = this.getItem();
 
+        // PLACE dirty plate
         if (heldItem instanceof Plate && stationItem == null) {
             Plate plate = (Plate) heldItem;
             if (!plate.isClean()) {
@@ -31,6 +32,7 @@ public class WashingStation extends Station {
                 Gdx.app.log("WashingStation", "Placed dirty plate");
             }
         } 
+        // TAKE clean plate (hanya kalau tidak lagi di-hold)
         else if (heldItem == null && stationItem instanceof Plate) {
             Plate plate = (Plate) stationItem;
             
@@ -52,6 +54,7 @@ public class WashingStation extends Station {
             
             if (!plate.isClean()) {
                 isBeingHeld = true;
+                chef.setBusy(true); // LOCK CHEF MOVEMENT ← FROM YOUR VERSION
                 holdProgress += delta;
                 
                 if (!hasPlayedSound) {
@@ -64,6 +67,7 @@ public class WashingStation extends Station {
                     holdProgress = 0f;
                     hasPlayedSound = false;
                     isBeingHeld = false;
+                    chef.setBusy(false); // UNLOCK CHEF ← FROM YOUR VERSION
                     Gdx.app.log("WashingStation", "Plate is now clean!");
                 }
             }
@@ -71,6 +75,7 @@ public class WashingStation extends Station {
             if (isBeingHeld) {
                 isBeingHeld = false;
                 hasPlayedSound = false;
+                chef.setBusy(false); // UNLOCK CHEF ← FROM YOUR VERSION
             }
         }
     }

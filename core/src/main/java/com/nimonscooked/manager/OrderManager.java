@@ -2,6 +2,7 @@ package com.nimonscooked.manager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
+import com.nimonscooked.config.GameConfig;
 import com.nimonscooked.model.dish.Dish;
 import com.nimonscooked.model.order.Order;
 import com.nimonscooked.model.recipe.Recipe;
@@ -16,11 +17,6 @@ public class OrderManager {
     private List<Order> activeOrders;
 
     private float timeSinceLastOrder = 0;
-    private static final float MIN_ORDER_INTERVAL = 10f;
-    private static final float MAX_ORDER_INTERVAL = 20f;
-    private static final int MAX_ACTIVE_ORDERS = 4;
-    private static final int ORDER_TIME_LIMIT = 60;
-    
     private float nextOrderInterval;
 
     public OrderManager(List<Recipe> menu) {
@@ -31,8 +27,8 @@ public class OrderManager {
 
     public void update(float delta) {
         timeSinceLastOrder += delta;
-        
-        if (timeSinceLastOrder >= nextOrderInterval && activeOrders.size() < MAX_ACTIVE_ORDERS) {
+
+        if (timeSinceLastOrder >= nextOrderInterval && activeOrders.size() < GameConfig.MAX_ACTIVE_ORDERS) {
             spawnOrder();
             timeSinceLastOrder = 0;
             scheduleNextOrder();
@@ -48,12 +44,12 @@ public class OrderManager {
                 handleExpiredOrder(order);
             }
         }
-        
+
         updateOrderPositions();
     }
 
     private void scheduleNextOrder() {
-        nextOrderInterval = MathUtils.random(MIN_ORDER_INTERVAL, MAX_ORDER_INTERVAL);
+        nextOrderInterval = MathUtils.random(GameConfig.MIN_ORDER_INTERVAL, GameConfig.MAX_ORDER_INTERVAL);
     }
 
     private void handleExpiredOrder(Order order) {
@@ -65,9 +61,9 @@ public class OrderManager {
 
     public int submitOrder(Dish servedDish) {
         if (activeOrders.isEmpty()) {
-            GameManager.getInstance().addScore(-100);
+            GameManager.getInstance().addScore(GameConfig.PENALTY_NO_ORDER);
             AudioManager.getInstance().playSound("sfx/delivery_fail.wav");
-            return -100;
+            return GameConfig.PENALTY_NO_ORDER;
         }
 
         for (Order order : activeOrders) {
@@ -81,17 +77,26 @@ public class OrderManager {
             }
         }
 
-        GameManager.getInstance().addScore(-10);
+        GameManager.getInstance().addScore(GameConfig.PENALTY_WRONG_ORDER);
         AudioManager.getInstance().playSound("sfx/delivery_fail.wav");
-        return -10;
+        return GameConfig.PENALTY_WRONG_ORDER;
     }
 
     private void spawnOrder() {
         if (availableRecipes.isEmpty()) return;
+
         Recipe r = availableRecipes.get(new Random().nextInt(availableRecipes.size()));
-        Order newOrder = new Order(activeOrders.size() + 1, r.getName(), 120, -50, ORDER_TIME_LIMIT);
+
+        Order newOrder = new Order(
+            activeOrders.size() + 1,
+            r.getName(),
+            GameConfig.REWARD_CORRECT_ORDER,
+            GameConfig.PENALTY_EXPIRED_ORDER,
+            GameConfig.DEFAULT_ORDER_TIME_LIMIT
+        );
+
         activeOrders.add(newOrder);
-        AudioManager.getInstance().playSound("sfx/catch.wav");
+        AudioManager.getInstance().playSound("sfx/catch.mp3");
     }
 
     private void updateOrderPositions() {

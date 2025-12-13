@@ -1,21 +1,22 @@
 package com.nimonscooked.model.station;
 
-import com.badlogic.gdx.Gdx;
-import com.nimonscooked.model.entity.Chef;
-import com.nimonscooked.model.item.Item;
-import com.nimonscooked.model.dish.Dish;
-import com.nimonscooked.model.recipe.Recipe;
-import com.nimonscooked.model.item.Ingredient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import com.badlogic.gdx.Gdx;
+import com.nimonscooked.model.dish.Dish;
+import com.nimonscooked.model.entity.Chef;
+import com.nimonscooked.model.item.Ingredient;
+import com.nimonscooked.model.item.Item;
+import com.nimonscooked.model.recipe.Recipe;
 
 public class AssemblyStation extends Station {
 
     private final List<Recipe> availableRecipes;
 
-    public AssemblyStation(String id, List<Recipe> recipes) {
-        super(id);
+    public AssemblyStation(String id, List<Recipe> recipes, float x, float y) {
+        super(id, x, y, 64, 64);
         this.availableRecipes = recipes != null ? new ArrayList<>(recipes) : new ArrayList<>();
     }
 

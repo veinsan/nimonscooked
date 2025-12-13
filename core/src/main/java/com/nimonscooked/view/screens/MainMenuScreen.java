@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch; //
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
@@ -14,7 +15,13 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -94,6 +101,34 @@ public class MainMenuScreen extends ScreenAdapter {
         pixmap.dispose();
         return new TextureRegionDrawable(new TextureRegion(texture));
     }
+
+    private Label createShadowLabel(String text, Label.LabelStyle style) {
+        return new Label(text, style) {
+            @Override
+            public void draw(Batch batch, float parentAlpha) {
+                float x = getX();
+                float y = getY();
+                
+                // 1. Capture the original color values (not just the reference)
+                Color color = getColor();
+                float oldR = color.r;
+                float oldG = color.g;
+                float oldB = color.b;
+                float oldA = color.a;
+                
+                // 2. Draw Shadow (Set color to Black)
+                setColor(0, 0, 0, oldA * parentAlpha);
+                setPosition(x + 4, y - 4);
+                super.draw(batch, parentAlpha);
+                
+                // 3. Draw Text (Restore original color values)
+                setColor(oldR, oldG, oldB, oldA);
+                setPosition(x, y);
+                super.draw(batch, parentAlpha);
+            }
+        };
+    }
+    // ---------------------------------------
 
     @Override
     public void show() {
@@ -277,12 +312,16 @@ public class MainMenuScreen extends ScreenAdapter {
         landingTable.setFillParent(true);
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        Label gameTitle = new Label("GASTROPATH", titleStyle);
+        
+        // Use shadow label for Title
+        Label gameTitle = createShadowLabel("GASTROPATH", titleStyle);
         gameTitle.setFontScale(6.5f); 
         gameTitle.setAlignment(Align.center);
 
         Label.LabelStyle subtitleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        Label subtitle = new Label("Travelers of the Sacred Stack", subtitleStyle);
+        
+        // Use shadow label for Subtitle
+        Label subtitle = createShadowLabel("Travelers of the Sacred Stack", subtitleStyle);
         subtitle.setFontScale(2.2f);
         subtitle.setAlignment(Align.center);
 
@@ -292,7 +331,7 @@ public class MainMenuScreen extends ScreenAdapter {
         pressKeyLabel.setAlignment(Align.center);
 
         landingTable.add(gameTitle).expandY().padTop(200).row();
-        landingTable.add(subtitle).padTop(5f).row(); 
+        landingTable.add(subtitle).padTop(-220).row(); 
 
         landingTable.add().expand().row();
         landingTable.add(pressKeyLabel).bottom().padBottom(120);
@@ -305,7 +344,9 @@ public class MainMenuScreen extends ScreenAdapter {
         mainMenuTable.setFillParent(true);
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        Label gameTitle = new Label("GASTROPATH", titleStyle);
+        
+        // Use shadow label for Main Menu Title
+        Label gameTitle = createShadowLabel("GASTROPATH", titleStyle);
         gameTitle.setFontScale(4.5f); 
         gameTitle.setAlignment(Align.center);
 
@@ -351,7 +392,9 @@ public class MainMenuScreen extends ScreenAdapter {
         optionsTable.pad(60);
 
         Label.LabelStyle titleStyle = new Label.LabelStyle(customFont, Color.WHITE);
-        Label titleLabel = new Label("SETTINGS", titleStyle);
+        
+        // Use shadow label for Settings Title
+        Label titleLabel = createShadowLabel("SETTINGS", titleStyle);
         titleLabel.setFontScale(3.0f);
         titleLabel.setAlignment(Align.center);
 
@@ -423,18 +466,26 @@ public class MainMenuScreen extends ScreenAdapter {
         }));
 
         optionsTable.defaults().padBottom(15);
-        optionsTable.add(titleLabel).colspan(3).padBottom(35).row();
+        optionsTable.add(titleLabel).colspan(3).padTop(-80).padBottom(35).row();
+
         optionsTable.add(createSeparator()).colspan(3).growX().padBottom(40).row();
         optionsTable.add(videoLabel).colspan(3).left().padBottom(20).row();
         optionsTable.add(fullScreenCheck).colspan(3).left().padLeft(30).padBottom(30).row();
         optionsTable.add(createSeparator()).colspan(3).growX().padBottom(40).row();
         optionsTable.add(audioLabel).colspan(3).left().padBottom(20).row();
+
+        // Master Volume
         optionsTable.add(lblMaster).left().padLeft(30).width(300).padBottom(20);
         optionsTable.add(sldMaster).fillX().height(40).colspan(2).padBottom(20).row();
+
+        // Music Volume
         optionsTable.add(lblMusic).left().padLeft(30).width(300).padBottom(20);
         optionsTable.add(sldMusic).fillX().height(40).colspan(2).padBottom(20).row();
-        optionsTable.add(lblSfx).left().padLeft(30).width(300).padBottom(20);
+
+        // SFX Volume
+        optionsTable.add(lblSfx).left().padLeft(30).width(300).padBottom(50);
         optionsTable.add(sldSfx).fillX().height(40).colspan(2).padBottom(50).row();
+
         optionsTable.add(createSeparator()).colspan(3).growX().padBottom(40).row();
         optionsTable.add(btnBack).colspan(3).width(300).height(70);
 
@@ -478,7 +529,7 @@ public class MainMenuScreen extends ScreenAdapter {
             hideMenuPanel(howToPlayTable, () -> changeState(MenuState.MAIN_MENU));
         }));
 
-        howToPlayTable.add(title).padBottom(30).row();
+        howToPlayTable.add(title).padTop(60).padBottom(30).row();
         howToPlayTable.add(createSeparator()).growX().padBottom(40).row();
         howToPlayTable.add(content).expandY().padBottom(50).row();
         howToPlayTable.add(createSeparator()).growX().padBottom(40).row();
@@ -504,6 +555,28 @@ public class MainMenuScreen extends ScreenAdapter {
     }
 
     private void handleInput() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            switch (currentState) {
+                case OPTIONS:
+                    AudioManager.getInstance().playSound(SFX_CLICK);
+                    hideMenuPanel(optionsTable, () -> changeState(MenuState.MAIN_MENU));
+                    return;
+                case HOW_TO_PLAY:
+                    AudioManager.getInstance().playSound(SFX_CLICK);
+                    hideMenuPanel(howToPlayTable, () -> changeState(MenuState.MAIN_MENU));
+                    return;
+                case MAIN_MENU:
+                    AudioManager.getInstance().playSound(SFX_CLICK);
+                    changeState(MenuState.LANDING);
+                    return;
+                case LANDING:
+                    Gdx.app.exit();
+                    return;
+                default:
+                    break;
+            }
+        }
+
         if (currentState == MenuState.MAIN_MENU && !menuButtons.isEmpty()) {
             
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {

@@ -15,7 +15,6 @@ public class ResourceManager implements Disposable {
 
     public final AssetManager assetManager;
 
-    // Path constants corresponding to your assets folder structure
     public static final String UI_SKIN_PATH = "ui/freezing-ui.json";
     public static final String CUSTOM_FONT_PATH = "font/pixel.fnt";
     public static final String TEXTURE_ROOT = "textures/";
@@ -26,13 +25,9 @@ public class ResourceManager implements Disposable {
     }
 
     public void loadAll() {
-        // --- UI & Font ---
-        // Loads the skin defined in assets/ui/freezing-ui.json
         assetManager.load(UI_SKIN_PATH, Skin.class);
-        // Loads the custom pixel font defined in assets/font/pixel.fnt
         assetManager.load(CUSTOM_FONT_PATH, BitmapFont.class);
 
-        // --- Textures: Chef ---
         loadTexture("chef/chef_idle_down.png");
         loadTexture("chef/chef_idle_side.png");
         loadTexture("chef/chef_idle_up.png");
@@ -40,7 +35,6 @@ public class ResourceManager implements Disposable {
         loadTexture("chef/chef_walk_side.png");
         loadTexture("chef/chef_walk_up.png");
 
-        // --- Textures: Ingredients ---
         loadTexture("ingredients/blt_burger.png");
         loadTexture("ingredients/bun.png");
         loadTexture("ingredients/burger_random.png");
@@ -58,11 +52,9 @@ public class ResourceManager implements Disposable {
         loadTexture("ingredients/tomato.png");
         loadTexture("ingredients/tomato_chopped.png");
 
-        // --- Textures: Items ---
         loadTexture("items/plate.png");
         loadTexture("items/plate_dirty.png");
 
-        // --- Textures: Stations ---
         loadTexture("stations/assembly.png");
         loadTexture("stations/crate.png");
         loadTexture("stations/crate_bread.png");
@@ -78,14 +70,17 @@ public class ResourceManager implements Disposable {
         loadTexture("stations/serving.png");
         loadTexture("stations/sink.png");
         loadTexture("stations/sink_active.png");
+
         loadTexture("stations/stove_active_left.png");
         loadTexture("stations/stove_active_right.png");
         loadTexture("stations/stove_left.png");
         loadTexture("stations/stove_right.png");
+        loadTexture("stations/stove_cooked_left.png");
+        loadTexture("stations/stove_cooked_right.png");
+
         loadTexture("stations/trash.png");
         loadTexture("stations/wall.png");
 
-        // --- Textures: UI ---
         loadTexture("ui/title_bg.png");
         loadTexture("ui/bg_winter.jpg");
         loadTexture("ui/score.png");
@@ -93,30 +88,28 @@ public class ResourceManager implements Disposable {
         loadTexture("ui/order.png");
         loadTexture("ui/score_current.png");
 
-        // --- Audio: Music ---
         loadMusic("music/bgm_game.mp3");
         loadMusic("music/bgm_menu.mp3");
         loadMusic("music/bgm_gameover.mp3");
 
-        // --- Audio: SFX ---
         loadSound("sfx/alarm.wav");
         loadSound("sfx/catch.mp3");
         loadSound("sfx/chop.mp3");
         loadSound("sfx/delivery_fail.wav");
         loadSound("sfx/delivery_success.wav");
+        loadSound("sfx/done.mp3");
         loadSound("sfx/fry.mp3");
         loadSound("sfx/trash.wav");
         loadSound("sfx/click.mp3");
         loadSound("sfx/hover.mp3");
 
-        // Blocks until all resources are loaded
+        loadTexture("effects/smoke.png");
+        loadTexture("effects/chop.png");
+
+
         assetManager.finishLoading();
     }
 
-    /**
-     * Helper to load a texture. 
-     * Automatically prepends TEXTURE_ROOT (assets/textures/).
-     */
     private void loadTexture(String path) {
         try {
             assetManager.load(TEXTURE_ROOT + path, Texture.class);
@@ -125,30 +118,19 @@ public class ResourceManager implements Disposable {
         }
     }
 
-    /**
-     * Helper to load music. 
-     * Automatically prepends AUDIO_ROOT (assets/audio/).
-     */
     private void loadMusic(String path) {
         assetManager.load(AUDIO_ROOT + path, Music.class);
     }
 
-    /**
-     * Helper to load sound. 
-     * Automatically prepends AUDIO_ROOT (assets/audio/).
-     */
     private void loadSound(String path) {
         assetManager.load(AUDIO_ROOT + path, Sound.class);
     }
-
-    // --- Getters ---
 
     public Texture getTexture(String fileName) {
         String fullPath = TEXTURE_ROOT + fileName;
         if (assetManager.isLoaded(fullPath)) {
             return assetManager.get(fullPath, Texture.class);
         }
-        Gdx.app.error("ResourceManager", "Texture not loaded: " + fullPath);
         return null;
     }
 

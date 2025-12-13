@@ -1,6 +1,7 @@
 package com.nimonscooked.factory;
 
 import com.badlogic.gdx.Gdx;
+import com.nimonscooked.config.GameConfig;
 import com.nimonscooked.manager.RecipeLoader;
 import com.nimonscooked.model.recipe.Recipe;
 import com.nimonscooked.model.station.*;
@@ -39,32 +40,36 @@ public class StationFactory {
     public static Station createStation(char symbol, int col, int row) {
         String id = symbol + "_" + col + "_" + row;
         Station station = null;
+        
+        // Calculate pixel coordinates
+        float pX = col * GameConfig.TILE_SIZE;
+        float pY = row * GameConfig.TILE_SIZE;
 
         switch (symbol) {
             case 'C':
-                station = new CuttingStation(id);
+                station = new CuttingStation(id, pX, pY);
                 break;
             case 'R':
                 CookingStation.StoveType type = determineStoveType(col);
-                station = new CookingStation(id, type);
+                station = new CookingStation(id, type, pX, pY);
                 break;
             case 'A':
-                station = new AssemblyStation(id, cachedRecipes != null ? cachedRecipes : new ArrayList<>());
+                station = new AssemblyStation(id, cachedRecipes != null ? cachedRecipes : new ArrayList<>(), pX, pY);
                 break;
             case 'S':
-                station = new ServingCounter(id);
+                station = new ServingCounter(id, pX, pY);
                 break;
             case 'W':
-                station = new WashingStation(id);
+                station = new WashingStation(id, pX, pY);
                 break;
             case 'P':
-                station = new PlateStorage(id);
+                station = new PlateStorage(id, pX, pY);
                 break;
             case 'T':
-                station = new TrashStation(id);
+                station = new TrashStation(id, pX, pY);
                 break;
             case 'I':
-                station = createIngredientStorage(id, col, row);
+                station = createIngredientStorage(id, col, row, pX, pY);
                 break;
             default:
                 Gdx.app.error("StationFactory", "Unknown station symbol: " + symbol);
@@ -81,7 +86,7 @@ public class StationFactory {
         }
     }
 
-    private static IngredientStorage createIngredientStorage(String id, int col, int row) {
+    private static IngredientStorage createIngredientStorage(String id, int col, int row, float x, float y) {
         String ingredientName = "Tomato";
 
         if (col < 5) {
@@ -102,7 +107,7 @@ public class StationFactory {
 
         Gdx.app.log("StationFactory", "Created Storage [" + ingredientName + "] at X=" + col + ", Y=" + row);
 
-        return new IngredientStorage(id, ingredientName);
+        return new IngredientStorage(id, ingredientName, x, y);
     }
 
     public static boolean isStationSymbol(char symbol) {

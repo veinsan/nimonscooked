@@ -1,14 +1,13 @@
 package com.nimonscooked.model.entity;
 
-import com.badlogic.gdx.Gdx;
+import java.util.List;
+
 import com.badlogic.gdx.math.Vector2;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
-import com.nimonscooked.model.util.Position;
 import com.nimonscooked.model.thread.InteractionThread;
-
-import java.util.List;
+import com.nimonscooked.model.util.Position;
 
 public class Chef {
     public enum Direction { UP, DOWN, LEFT, RIGHT }
@@ -30,8 +29,10 @@ public class Chef {
     private static final float DASH_COOLDOWN = 2.0f;
     
     private static final float MOVE_SPEED = 3.5f;
-    private static final float FEET_OFFSET = -0.3f;
-    private static final float BODY_WIDTH = 0.25f;
+    
+    // PERBAIKAN: Collision box yang lebih konsisten
+    private static final float COLLISION_RADIUS = 0.35f; // Radius dari center chef
+    private static final float COLLISION_OFFSET_Y = -0.15f; // Offset ke bawah untuk feet
 
     public Chef(int startCol, int startRow, Type type) {
         this.position = new Position(startRow, startCol);
@@ -68,7 +69,7 @@ public class Chef {
             case RIGHT: newX += moveAmount; break;
         }
 
-        if (canMoveTo(newX, newY, dir, map)) {
+        if (canMoveTo(newX, newY, map)) {
             visualPos.x = newX;
             visualPos.y = newY;
             
@@ -77,46 +78,34 @@ public class Chef {
         }
     }
 
-    private boolean canMoveTo(float x, float y, Direction dir, GridMap map) {
-        float feetY = y + FEET_OFFSET;
+    /**
+     * PERBAIKAN UTAMA: Collision detection yang lebih konsisten
+     * Menggunakan circular collision box dengan 4 test points
+     */
+    private boolean canMoveTo(float x, float y, GridMap map) {
+        // Center point dengan offset untuk feet
+        float centerX = x;
+        float centerY = y + COLLISION_OFFSET_Y;
         
-        if (dir == Direction.UP || dir == Direction.DOWN) {
-            int feetCol = Math.round(x);
-            int feetRow = Math.round(feetY);
+        // Test 4 points di sekitar collision circle
+        // Top, Bottom, Left, Right dari collision radius
+        float[][] testPoints = {
+            {centerX, centerY + COLLISION_RADIUS},  // Top
+            {centerX, centerY - COLLISION_RADIUS},  // Bottom
+            {centerX - COLLISION_RADIUS, centerY},  // Left
+            {centerX + COLLISION_RADIUS, centerY}   // Right
+        };
+        
+        // Cek semua test points
+        for (float[] point : testPoints) {
+            int col = Math.round(point[0]);
+            int row = Math.round(point[1]);
             
-            if (!isTileWalkable(feetCol, feetRow, map)) {
+            if (!isTileWalkable(col, row, map)) {
                 return false;
             }
         }
         
-        if (dir == Direction.LEFT) {
-            float leftX = x - BODY_WIDTH;
-            int leftCol = Math.round(leftX);
-            int bodyRow = Math.round(y);
-            int feetRow = Math.round(feetY);
-            
-            if (!isTileWalkable(leftCol, bodyRow, map)) {
-                return false;
-            }
-            if (!isTileWalkable(leftCol, feetRow, map)) {
-                return false;
-            }
-        }
-        
-        if (dir == Direction.RIGHT) {
-            float rightX = x + BODY_WIDTH;
-            int rightCol = Math.round(rightX);
-            int bodyRow = Math.round(y);
-            int feetRow = Math.round(feetY);
-            
-            if (!isTileWalkable(rightCol, bodyRow, map)) {
-                return false;
-            }
-            if (!isTileWalkable(rightCol, feetRow, map)) {
-                return false;
-            }
-        }
-
         return true;
     }
 
@@ -157,18 +146,25 @@ public class Chef {
         int targetCol = position.col;
         int targetRow = position.row;
         
+        // Test setiap tile dalam dash range
         for(int i = 1; i <= 3; i++) { 
             int checkCol = position.col + (dCol * i);
             int checkRow = position.row + (dRow * i);
+            
             if(map.isValid(checkCol, checkRow)) {
-                 Tile t = map.getTile(checkCol, checkRow);
-                 if(t != null && t.isWalkable() && !t.hasStation()) {
-                     targetCol = checkCol;
-                     targetRow = checkRow;
-                 } else break;
-            } else break;
+                Tile t = map.getTile(checkCol, checkRow);
+                if(t != null && t.isWalkable() && !t.hasStation()) {
+                    targetCol = checkCol;
+                    targetRow = checkRow;
+                } else {
+                    break; // Stop jika ketemu obstacle
+                }
+            } else {
+                break; // Stop jika keluar map
+            }
         }
         
+        // Hanya dash jika ada perubahan posisi
         if(targetCol != position.col || targetRow != position.row) {
             position.set(targetRow, targetCol);
             visualPos.set(targetCol, targetRow);
@@ -198,12 +194,12 @@ public class Chef {
             
             Tile t = map.getTile(checkCol, checkRow);
             if(t != null && !t.isWalkable()) {
-                 if(t.getStation() != null && !t.getStation().hasItem()) {
-                     t.getStation().setItem(inventory);
-                     setInventory(null);
-                     return;
-                 }
-                 break;
+                if(t.getStation() != null && !t.getStation().hasItem()) {
+                    t.getStation().setItem(inventory);
+                    setInventory(null);
+                    return;
+                }
+                break;
             }
             
             for(Chef c : allChefs) {
