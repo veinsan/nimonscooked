@@ -7,6 +7,7 @@ import com.nimonscooked.model.dish.Dish;
 import com.nimonscooked.model.recipe.Recipe;
 import com.nimonscooked.model.item.Ingredient;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class AssemblyStation extends Station {
@@ -63,11 +64,21 @@ public class AssemblyStation extends Station {
         for (Recipe recipe : availableRecipes) {
             if (recipe.matches(inputDish)) {
                 Gdx.app.log("AssemblyStation", "RECIPE COMPLETED: " + recipe.getName());
-                return new Dish(recipe.getName(), inputDish.getComponents());
+                Dish completedDish = new Dish(recipe.getName(), inputDish.getComponents());
+                completedDish.setMatchedRecipe(recipe.getName());
+                return completedDish;
             }
         }
 
         return input;
+    }
+
+    public List<Item> getCurrentIngredients() {
+        Item current = this.getItem();
+        if (current instanceof Dish) {
+            return new ArrayList<>(((Dish) current).getComponents());
+        }
+        return Collections.emptyList();
     }
 
     public List<Recipe> getAvailableRecipes() {

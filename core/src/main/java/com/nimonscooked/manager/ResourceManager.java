@@ -33,7 +33,6 @@ public class ResourceManager implements Disposable {
         assetManager.load(CUSTOM_FONT_PATH, BitmapFont.class);
 
         // --- Textures: Chef ---
-        loadTexture("chef/chef_chop.png");
         loadTexture("chef/chef_idle_down.png");
         loadTexture("chef/chef_idle_side.png");
         loadTexture("chef/chef_idle_up.png");

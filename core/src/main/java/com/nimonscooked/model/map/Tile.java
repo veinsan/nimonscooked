@@ -1,5 +1,6 @@
 package com.nimonscooked.model.map;
 
+import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.station.Station;
 
 public class Tile {
@@ -29,6 +30,7 @@ public class Tile {
     private final TileType type;
     private final char symbol;
     private Station station;
+    private Item droppedItem;
 
     public Tile(TileType type, char symbol) {
         if (type == null) {
@@ -38,6 +40,7 @@ public class Tile {
         this.type = type;
         this.symbol = symbol;
         this.station = null;
+        this.droppedItem = null;
     }
 
     public TileType getType() {
@@ -64,6 +67,20 @@ public class Tile {
         return station != null;
     }
 
+    public void setDroppedItem(Item item) {
+        if (type == TileType.FLOOR) {
+            this.droppedItem = item;
+        }
+    }
+
+    public Item getDroppedItem() {
+        return droppedItem;
+    }
+
+    public boolean hasDroppedItem() {
+        return droppedItem != null && type == TileType.FLOOR;
+    }
+
     public boolean isFloor() {
         return type == TileType.FLOOR;
     }
@@ -83,6 +100,9 @@ public class Tile {
         sb.append(", '").append(symbol).append("'");
         if (station != null) {
             sb.append(", station=").append(station.getId());
+        }
+        if (droppedItem != null) {
+            sb.append(", dropped=").append(droppedItem.getName());
         }
         sb.append("]");
         return sb.toString();

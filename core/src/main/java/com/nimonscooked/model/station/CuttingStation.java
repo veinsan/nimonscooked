@@ -1,17 +1,17 @@
 package com.nimonscooked.model.station;
 
+import com.badlogic.gdx.Gdx;
 import com.nimonscooked.manager.AudioManager;
 import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.item.Ingredient;
-import com.nimonscooked.model.thread.InteractionThread;
 
 public class CuttingStation extends Station {
     
-    // Flag untuk memberi tahu Renderer ganti gambar
-    private boolean isProcessing = false;
-    // Referensi ke thread aktif untuk mengambil nilai progress bar
-    private InteractionThread currentTask = null;
+    private float holdProgress = 0f;
+    private static final float CHOP_DURATION = 3.0f;
+    private boolean hasPlayedSound = false;
+    private boolean isBeingHeld = false;
 
     public CuttingStation(String id) {
         super(id);
@@ -19,65 +19,62 @@ public class CuttingStation extends Station {
 
     @Override
     public void interact(Chef chef) {
-        if (chef.isBusy()) return;
-
         Item heldItem = chef.getInventory();
         Item stationItem = this.getItem();
 
-        // 1. Taruh barang ke meja
         if (heldItem instanceof Ingredient && stationItem == null) {
             if (((Ingredient) heldItem).canBeChopped()) {
                 this.setItem(heldItem);
                 chef.setInventory(null);
+                this.holdProgress = 0f;
+                Gdx.app.log("CuttingStation", "Placed ingredient for chopping");
             }
         } 
-        // 2. Ambil barang dari meja
-        else if (heldItem == null && stationItem != null) {
-            // Kalau sedang motong, jangan boleh diambil (opsional, biar ga bug)
-            if (!isProcessing) {
-                chef.setInventory(stationItem);
-                this.setItem(null);
-            }
-        } 
-        // 3. Aksi Memotong (Interact)
-        else if (heldItem == null && stationItem instanceof Ingredient) {
-            final Ingredient ing = (Ingredient) stationItem;
+        else if (heldItem == null && stationItem != null && !isBeingHeld) {
+            chef.setInventory(stationItem);
+            this.setItem(null);
+            this.holdProgress = 0f;
+            Gdx.app.log("CuttingStation", "Took ingredient from station");
+        }
+    }
+
+    @Override
+    public void processHold(Chef chef, float delta) {
+        Item stationItem = this.getItem();
+        
+        if (stationItem instanceof Ingredient && chef.getInventory() == null) {
+            Ingredient ing = (Ingredient) stationItem;
+            
             if (ing.canBeChopped()) {
+                isBeingHeld = true;
+                holdProgress += delta;
                 
-                // Set status station jadi AKTIF
-                this.isProcessing = true;
-
-                InteractionThread cutTask = new InteractionThread(chef, 3.0f) {
-                    @Override
-                    public void onComplete() {
-                        ing.chop();
-                        AudioManager.getInstance().playSound("sfx/chop.wav");
-                        // Reset status station jadi TIDAK AKTIF
-                        isProcessing = false;
-                        currentTask = null;
-                    }
-                };
+                if (!hasPlayedSound) {
+                    AudioManager.getInstance().playSound("sfx/chop.mp3");
+                    hasPlayedSound = true;
+                }
                 
-                // Simpan referensi task biar bisa diambil progress-nya
-                this.currentTask = cutTask;
-
-                chef.isChopping = true;
-                chef.setCurrentInteraction(cutTask);
-                cutTask.start();
+                if (holdProgress >= CHOP_DURATION) {
+                    ing.chop();
+                    holdProgress = 0f;
+                    hasPlayedSound = false;
+                    isBeingHeld = false;
+                    Gdx.app.log("CuttingStation", "Ingredient chopped!");
+                }
+            }
+        } else {
+            if (isBeingHeld) {
+                isBeingHeld = false;
+                hasPlayedSound = false;
             }
         }
     }
 
-    // --- Method untuk WorldRenderer ---
-
     public boolean isActive() {
-        return isProcessing;
+        return isBeingHeld;
     }
 
     public float getProgress() {
-        if (currentTask != null) {
-            return currentTask.getProgress(); // Pastikan InteractionThread punya method getProgress()
-        }
-        return 0f;
+        return Math.min(1f, holdProgress / CHOP_DURATION);
     }
 }

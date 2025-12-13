@@ -21,7 +21,6 @@ public class InteractCommand implements Command {
 
         Station station = MapManager.getInstance().getStationAt(targetCol, targetRow);
         if (station != null) {
-            chef.isChopping = true;
             station.interact(chef);
         }
     }

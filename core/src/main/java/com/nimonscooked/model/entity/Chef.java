@@ -1,8 +1,8 @@
 package com.nimonscooked.model.entity;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.nimonscooked.model.item.Item;
-import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.map.GridMap;
 import com.nimonscooked.model.map.Tile;
 import com.nimonscooked.model.util.Position;
@@ -12,53 +12,134 @@ import java.util.List;
 
 public class Chef {
     public enum Direction { UP, DOWN, LEFT, RIGHT }
-
+    public enum Type { CHEF_A, CHEF_B }
+    
+    private final Type type;
     public Position position;
     public Vector2 visualPos;
     public Direction direction = Direction.DOWN;
 
     public float stateTime = 0f;
     public boolean isMoving = false;
-    public boolean isChopping = false;
 
     private Item inventory;
-    
     private boolean isBusy = false;
     private InteractionThread currentInteraction;
     
     private float dashCooldownTimer = 0f;
     private static final float DASH_COOLDOWN = 2.0f;
+    
+    private static final float MOVE_SPEED = 3.5f;
+    private static final float FEET_OFFSET = -0.3f;
+    private static final float BODY_WIDTH = 0.25f;
 
-    public Chef(int startCol, int startRow) {
+    public Chef(int startCol, int startRow, Type type) {
         this.position = new Position(startRow, startCol);
         this.visualPos = new Vector2(startCol, startRow);
+        this.type = type;
     }
     
-    public void update(float delta) {
-        if (dashCooldownTimer > 0) dashCooldownTimer -= delta;
+    public Type getType() {
+        return type;
     }
 
-    public void move(Direction dir, GridMap map) {
+    public void update(float delta) {
+        if (dashCooldownTimer > 0) {
+            dashCooldownTimer -= delta;
+        }
+        
+        stateTime += delta;
+    }
+
+    public void move(Direction dir, GridMap map, float delta) {
         if (isBusy) return;
 
-        isChopping = false;
-        int targetCol = position.col;
-        int targetRow = position.row;
+        this.direction = dir;
+        this.isMoving = true;
+
+        float moveAmount = MOVE_SPEED * delta;
+        float newX = visualPos.x;
+        float newY = visualPos.y;
 
         switch (dir) {
-            case UP: targetRow++; break;
-            case DOWN: targetRow--; break;
-            case LEFT: targetCol--; break;
-            case RIGHT: targetCol++; break;
+            case UP: newY += moveAmount; break;
+            case DOWN: newY -= moveAmount; break;
+            case LEFT: newX -= moveAmount; break;
+            case RIGHT: newX += moveAmount; break;
         }
 
-        if (!map.isValid(targetCol, targetRow)) return;
-        Tile targetTile = map.getTile(targetCol, targetRow);
+        if (canMoveTo(newX, newY, dir, map)) {
+            visualPos.x = newX;
+            visualPos.y = newY;
+            
+            position.col = Math.round(visualPos.x);
+            position.row = Math.round(visualPos.y);
+        }
+    }
 
-        if (targetTile == null || !targetTile.isWalkable()) return;
+    private boolean canMoveTo(float x, float y, Direction dir, GridMap map) {
+        float feetY = y + FEET_OFFSET;
+        
+        if (dir == Direction.UP || dir == Direction.DOWN) {
+            int feetCol = Math.round(x);
+            int feetRow = Math.round(feetY);
+            
+            if (!isTileWalkable(feetCol, feetRow, map)) {
+                return false;
+            }
+        }
+        
+        if (dir == Direction.LEFT) {
+            float leftX = x - BODY_WIDTH;
+            int leftCol = Math.round(leftX);
+            int bodyRow = Math.round(y);
+            int feetRow = Math.round(feetY);
+            
+            if (!isTileWalkable(leftCol, bodyRow, map)) {
+                return false;
+            }
+            if (!isTileWalkable(leftCol, feetRow, map)) {
+                return false;
+            }
+        }
+        
+        if (dir == Direction.RIGHT) {
+            float rightX = x + BODY_WIDTH;
+            int rightCol = Math.round(rightX);
+            int bodyRow = Math.round(y);
+            int feetRow = Math.round(feetY);
+            
+            if (!isTileWalkable(rightCol, bodyRow, map)) {
+                return false;
+            }
+            if (!isTileWalkable(rightCol, feetRow, map)) {
+                return false;
+            }
+        }
 
-        position.set(targetRow, targetCol);
-        this.direction = dir;
+        return true;
+    }
+
+    private boolean isTileWalkable(int col, int row, GridMap map) {
+        if (!map.isValid(col, row)) {
+            return false;
+        }
+
+        Tile tile = map.getTile(col, row);
+        
+        if (tile == null) {
+            return false;
+        }
+
+        if (!tile.isWalkable()) {
+            return false;
+        }
+
+        if (tile.hasStation()) {
+            return false;
+        }
+
+        return true;
     }
     
     public void dash(Direction dir, GridMap map) {
@@ -76,12 +157,12 @@ public class Chef {
         int targetCol = position.col;
         int targetRow = position.row;
         
-        for(int i=1; i<=3; i++) { 
+        for(int i = 1; i <= 3; i++) { 
             int checkCol = position.col + (dCol * i);
             int checkRow = position.row + (dRow * i);
             if(map.isValid(checkCol, checkRow)) {
                  Tile t = map.getTile(checkCol, checkRow);
-                 if(t != null && t.isWalkable() && !map.isOccupiedByChef(checkCol, checkRow)) {
+                 if(t != null && t.isWalkable() && !t.hasStation()) {
                      targetCol = checkCol;
                      targetRow = checkRow;
                  } else break;
@@ -90,15 +171,14 @@ public class Chef {
         
         if(targetCol != position.col || targetRow != position.row) {
             position.set(targetRow, targetCol);
+            visualPos.set(targetCol, targetRow);
             dashCooldownTimer = DASH_COOLDOWN;
         }
     }
 
     public void throwItem(GridMap map, List<Chef> allChefs) {
-        if (inventory == null || !(inventory instanceof Ingredient)) return;
-        Ingredient ing = (Ingredient) inventory;
-        if (ing.getState() != Ingredient.State.RAW && ing.getState() != Ingredient.State.CHOPPED) return;
-
+        if (inventory == null) return;
+        
         int dCol = 0, dRow = 0;
         switch (direction) {
             case UP: dRow = 1; break;
@@ -110,7 +190,7 @@ public class Chef {
         boolean caught = false;
         Chef catcher = null;
 
-        for(int i=1; i<=4; i++) { 
+        for(int i = 1; i <= 4; i++) { 
             int checkCol = position.col + (dCol * i);
             int checkRow = position.row + (dRow * i);
             
@@ -146,8 +226,33 @@ public class Chef {
         }
     }
 
-    public boolean isBusy() { return isBusy; }
-    public void setBusy(boolean busy) { this.isBusy = busy; }
+    public void dropItem(GridMap map) {
+        if (inventory == null) return;
+        
+        Tile currentTile = map.getTile(position.col, position.row);
+        if (currentTile != null && currentTile.isFloor() && !currentTile.hasDroppedItem()) {
+            currentTile.setDroppedItem(inventory);
+            setInventory(null);
+        }
+    }
+    
+    public void pickupFromFloor(GridMap map) {
+        if (inventory != null) return;
+        
+        Tile currentTile = map.getTile(position.col, position.row);
+        if (currentTile != null && currentTile.hasDroppedItem()) {
+            setInventory(currentTile.getDroppedItem());
+            currentTile.setDroppedItem(null);
+        }
+    }
+
+    public boolean isBusy() { 
+        return isBusy; 
+    }
+    
+    public void setBusy(boolean busy) { 
+        this.isBusy = busy; 
+    }
 
     public void setCurrentInteraction(InteractionThread thread) {
         this.currentInteraction = thread;
@@ -163,11 +268,27 @@ public class Chef {
         }
     }
 
-    public float getX() { return visualPos.x; }
-    public float getY() { return visualPos.y; }
-    public void setInventory(Item item) { this.inventory = item; }
-    public Item getInventory() { return inventory; }
+    public float getX() { 
+        return visualPos.x; 
+    }
     
-    public boolean canDash() { return dashCooldownTimer <= 0 && !isBusy; }
-    public float getDashCooldown() { return Math.max(0, dashCooldownTimer); }
+    public float getY() { 
+        return visualPos.y; 
+    }
+    
+    public void setInventory(Item item) { 
+        this.inventory = item; 
+    }
+    
+    public Item getInventory() { 
+        return inventory; 
+    }
+    
+    public boolean canDash() { 
+        return dashCooldownTimer <= 0 && !isBusy; 
+    }
+    
+    public float getDashCooldown() { 
+        return Math.max(0, dashCooldownTimer); 
+    }
 }

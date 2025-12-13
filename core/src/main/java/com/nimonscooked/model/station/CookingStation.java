@@ -1,21 +1,22 @@
 package com.nimonscooked.model.station;
 
+import com.badlogic.gdx.Gdx;
 import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.item.Item;
-import com.nimonscooked.model.utensil.CookingDevice; // Pastikan punya class ini (Pan/Pot)
+import com.nimonscooked.model.utensil.CookingDevice;
 
 public class CookingStation extends Station {
 
-    public CookingStation(String id) {
+    public enum StoveType { LEFT, RIGHT }
+    private final StoveType stoveType;
+
+    public CookingStation(String id, StoveType type) {
         super(id);
+        this.stoveType = type;
     }
 
     @Override
     public void interact(Chef chef) {
-        // Logika interact standar (ambil/taruh panci)
-        // ... (gunakan logika standar interact kamu) ...
-        
-        // Contoh sederhana ambil/taruh:
         Item held = chef.getInventory();
         Item stored = this.getItem();
 
@@ -28,24 +29,35 @@ public class CookingStation extends Station {
         }
     }
 
-    /**
-     * Cek apakah kompor menyala.
-     * Kompor menyala JIKA ada alat masak DAN alat masaknya sedang proses memasak.
-     */
+    @Override
+    public void processHold(Chef chef, float delta) {
+        Item item = this.getItem();
+        if (item instanceof CookingDevice) {
+            CookingDevice device = (CookingDevice) item;
+            if (!device.isCooking()) {
+                device.startCooking();
+                Gdx.app.log("CookingStation", "Started cooking!");
+            }
+        }
+    }
+
     public boolean isActive() {
         Item item = this.getItem();
         if (item instanceof CookingDevice) {
-            return ((CookingDevice) item).isCooking(); // Pastikan CookingDevice punya isCooking()
+            return ((CookingDevice) item).isCooking();
         }
         return false;
     }
     
-    // Untuk ambil progress masak
     public float getProgress() {
         Item item = this.getItem();
         if (item instanceof CookingDevice) {
-             return ((CookingDevice) item).getProgress(); // 0.0f - 1.0f
+             return ((CookingDevice) item).getProgress();
         }
         return 0f;
+    }
+
+    public StoveType getStoveType() {
+        return stoveType;
     }
 }

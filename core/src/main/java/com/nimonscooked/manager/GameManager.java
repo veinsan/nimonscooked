@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.badlogic.gdx.Gdx;
 import com.nimonscooked.NimonscookedGame;
+import com.nimonscooked.config.GameConfig;
 import com.nimonscooked.exception.GameLoadException;
 import com.nimonscooked.model.recipe.Recipe;
 import com.nimonscooked.view.screens.ResultScreen;
@@ -19,11 +20,8 @@ public class GameManager {
     public OrderManager orderManager;
 
     private float levelTimer;
-    private final float LEVEL_DURATION = 100f;
     private int score;
     private int failedOrdersCount;
-    private final int MAX_FAILED_ORDERS = 5;
-    private final int MIN_PASS_SCORE = 100;
 
     private boolean gamePaused;
     private boolean isGameOver;
@@ -64,7 +62,7 @@ public class GameManager {
 
     public void incrementFailedOrders() {
         failedOrdersCount++;
-        if (failedOrdersCount >= MAX_FAILED_ORDERS) {
+        if (failedOrdersCount >= GameConfig.MAX_FAILED_ORDERS) {
             triggerGameOver();
         }
     }
@@ -73,7 +71,8 @@ public class GameManager {
         if (isGameOver) return;
         isGameOver = true;
 
-        boolean isWin = (score >= MIN_PASS_SCORE) && (failedOrdersCount < MAX_FAILED_ORDERS);
+        boolean isWin = (score >= GameConfig.MIN_PASS_SCORE) && 
+                       (failedOrdersCount < GameConfig.MAX_FAILED_ORDERS);
 
         Gdx.app.postRunnable(() -> {
             NimonscookedGame.instance.setScreen(new ResultScreen(score, isWin));
@@ -81,7 +80,7 @@ public class GameManager {
     }
 
     public void reset() {
-        levelTimer = LEVEL_DURATION;
+        levelTimer = GameConfig.LEVEL_DURATION;
         score = 0;
         failedOrdersCount = 0;
         gamePaused = false;
@@ -89,7 +88,7 @@ public class GameManager {
         timeScale = 1.0f;
 
         try {
-            List<Recipe> loadedRecipes = RecipeLoader.loadRecipes("data/recipes.json");
+            List<Recipe> loadedRecipes = RecipeLoader.loadRecipes(GameConfig.RECIPES_PATH);
             this.orderManager = new OrderManager(loadedRecipes);
         } catch (GameLoadException e) {
             Gdx.app.error("GameManager", "CRITICAL ERROR: Failed to load recipes!", e);
@@ -105,12 +104,29 @@ public class GameManager {
         return timeScale;
     }
 
-    public float getLevelTimer() { return levelTimer; }
-    public int getScore() { return score; }
-    public int getFailedOrders() { return failedOrdersCount; }
-    public boolean isPaused() { return gamePaused; }
-    public void pauseGame() { gamePaused = true; }
-    public void resumeGame() { gamePaused = false; }
+    public float getLevelTimer() { 
+        return levelTimer; 
+    }
+    
+    public int getScore() { 
+        return score; 
+    }
+    
+    public int getFailedOrders() { 
+        return failedOrdersCount; 
+    }
+    
+    public boolean isPaused() { 
+        return gamePaused; 
+    }
+    
+    public void pauseGame() { 
+        gamePaused = true; 
+    }
+    
+    public void resumeGame() { 
+        gamePaused = false; 
+    }
 
     public void dispose() {
         shutdown();

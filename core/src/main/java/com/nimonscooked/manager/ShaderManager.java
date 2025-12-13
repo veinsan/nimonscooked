@@ -27,15 +27,10 @@ public class ShaderManager {
     }
     
     private void loadShaders() {
-        // Original working shaders
         loadShader("default", "default.vert", "vignette.frag");
         loadShader("lighting", "default.vert", "lighting.frag");
-        
-        // NEW Octopath-style shaders
         loadShader("advanced_lighting", "default.vert", "advanced_lighting.frag");
         loadShader("atmospheric", "default.vert", "atmospheric.frag");
-        
-        // TAVERN shader - Warm & Bright! ⭐
         loadShader("tavern", "default.vert", "tavern.frag");
         
         Gdx.app.log("ShaderManager", "Loaded " + shaders.size() + " shaders");

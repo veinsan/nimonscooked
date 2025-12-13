@@ -34,7 +34,6 @@ public abstract class InteractionThread extends Thread {
         } finally {
             chef.setBusy(false);
             chef.setCurrentInteraction(null);
-            chef.isChopping = false;
         }
     }
 

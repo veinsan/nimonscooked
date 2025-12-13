@@ -19,7 +19,6 @@ public class MapGenerator {
         MapManager manager = MapManager.getInstance();
         GridMap map = new GridMap(WIDTH, HEIGHT);
         
-        // Reset Chef
         manager.chefs.clear();
         
         // 1. Inisialisasi Lantai & Tembok Pinggir
@@ -33,27 +32,25 @@ public class MapGenerator {
             }
         }
 
-        // 2. Daftar Station Wajib untuk Map C (Burger)
+        // 2. Daftar Station
         List<Character> stations = new ArrayList<>();
-        // Komposisi agar tidak macet:
         addStations(stations, 'R', 4); // Cooking (Stove)
         addStations(stations, 'C', 2); // Cutting
-        addStations(stations, 'A', 4); // Assembly (Meja kosong)
+        addStations(stations, 'A', 4); // Assembly
         addStations(stations, 'W', 2); // Washing
         addStations(stations, 'S', 1); // Serving
         addStations(stations, 'T', 1); // Trash
         addStations(stations, 'P', 1); // Plate Storage
-        addStations(stations, 'I', 5); // Ingredients (Bun, Meat, Cheese, Tomato, Lettuce)
+        addStations(stations, 'I', 5); // Ingredients
 
-        // Acak urutan station
         Collections.shuffle(stations);
 
-        // 3. Tempatkan Station di Grid (Cari tempat kosong secara acak)
+        // 3. Tempatkan Station
         for (Character symbol : stations) {
             placeStationRandomly(map, symbol);
         }
 
-        // 4. Spawn 2 Chef di posisi aman (Lantai kosong)
+        // 4. Spawn 2 Chef
         spawnChefRandomly(map, manager);
         spawnChefRandomly(map, manager);
         
@@ -72,19 +69,17 @@ public class MapGenerator {
     private static void placeStationRandomly(GridMap map, char symbol) {
         int attempts = 0;
         while (attempts < 100) {
-            // Hindari pinggir tembok (x=1..12, y=1..8)
             int x = random.nextInt(WIDTH - 2) + 1;
             int y = random.nextInt(HEIGHT - 2) + 1;
 
             Tile t = map.getTile(x, y);
-            // Syarat: Harus lantai kosong dan belum ada station
             if (t.getType() == Tile.TileType.FLOOR && t.getStation() == null) {
                 Station s = StationFactory.createStation(symbol, x, y);
                 if (s != null) {
                     Tile newTile = new Tile(Tile.TileType.STATION, symbol);
                     newTile.setStation(s);
                     map.setTile(x, y, newTile);
-                    return; // Berhasil taruh
+                    return;
                 }
             }
             attempts++;
@@ -97,8 +92,13 @@ public class MapGenerator {
             int x = random.nextInt(WIDTH - 2) + 1;
             int y = random.nextInt(HEIGHT - 2) + 1;
             Tile t = map.getTile(x, y);
+            
             if (t.getType() == Tile.TileType.FLOOR && t.getStation() == null) {
-                manager.chefs.add(new Chef(x, y));
+                // LOGIKA BARU: Tentukan tipe Chef A atau B
+                Chef.Type type = (manager.chefs.size() % 2 == 0) ? Chef.Type.CHEF_A : Chef.Type.CHEF_B;
+                
+                // Panggil Constructor baru
+                manager.chefs.add(new Chef(x, y, type));
                 return;
             }
             attempts++;

@@ -12,6 +12,9 @@ public abstract class Station {
     }
 
     public abstract void interact(Chef chef);
+    
+    public void processHold(Chef chef, float delta) {
+    }
 
     public boolean hasItem() {
         return item != null;

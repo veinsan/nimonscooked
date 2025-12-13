@@ -10,23 +10,30 @@ public class Dish extends Item {
     private final int componentCount;
 
     public Dish(String name, List<Item> components) {
-        super(name, determineDishTexture(name));
+        super(name, "ingredients/burger_random.png");
         this.components = new ArrayList<>(components);
         this.componentCount = components.size();
     }
 
-    private static String determineDishTexture(String dishName) {
-        String lowerName = dishName.toLowerCase();
+    public void setMatchedRecipe(String recipeName) {
+        this.name = recipeName;
+        this.textureName = getTextureForRecipe(recipeName);
+    }
+
+    private String getTextureForRecipe(String recipeName) {
+        String lower = recipeName.toLowerCase();
         
-        if (lowerName.contains("burger")) {
-            return "ingredients/burger_complete.png";
-        } else if (lowerName.contains("salad")) {
-            return "ingredients/salad.png";
-        } else if (lowerName.contains("steak")) {
-            return "ingredients/meat_cooked.png";
+        if (lower.contains("classic")) {
+            return "ingredients/classic_burger.png";
+        } else if (lower.contains("cheese") && !lower.contains("deluxe")) {
+            return "ingredients/cheese_burger.png";
+        } else if (lower.contains("blt")) {
+            return "ingredients/blt_burger.png";
+        } else if (lower.contains("deluxe")) {
+            return "ingredients/deluxe_burger.png";
         }
         
-        return "ingredients/burger_complete.png";
+        return "ingredients/burger_random.png";
     }
 
     public List<Item> getComponents() {

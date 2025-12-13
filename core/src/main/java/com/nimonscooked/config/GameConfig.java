@@ -9,10 +9,11 @@ public class GameConfig {
     public static final int MIN_PASS_SCORE = 100;
     public static final int MAX_FAILED_ORDERS = 5;
 
-    public static final float COOK_TIME = 10f;
-    public static final float BURN_TIME = 8f;
-    public static final float BURN_WARNING_TIME = 6f;
+    public static final float COOK_TIME = 12f;
+    public static final float BURN_TIME = 12f;
+    public static final float BURN_WARNING_TIME = 4f;
     public static final float CHOP_TIME = 3f;
+    public static final float WASH_TIME = 3f;
 
     public static final float MIN_ORDER_INTERVAL = 10f;
     public static final float MAX_ORDER_INTERVAL = 20f;

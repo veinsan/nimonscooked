@@ -29,8 +29,11 @@ public class GameScreen extends ScreenAdapter {
 
     public GameScreen() {
         camera = new OrthographicCamera();
+        camera.setToOrtho(false, GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT);
+        
         viewport = new ExtendViewport(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT, camera);
         viewport.apply();
+        
         camera.zoom = 0.6f;
 
         worldRenderer = new WorldRenderer();
@@ -41,15 +44,24 @@ public class GameScreen extends ScreenAdapter {
 
         Gdx.input.setInputProcessor(inputHandler);
 
-        centerCameraOnMap();
+        centerCameraOnActiveChef();
 
         AudioManager.getInstance().playMusic("music/bgm_game.mp3");
     }
 
-    private void centerCameraOnMap() {
-        int mapWidth = MapManager.getInstance().currentMap.getWidth() * GameConfig.TILE_SIZE;
-        int mapHeight = MapManager.getInstance().currentMap.getHeight() * GameConfig.TILE_SIZE;
-        camera.position.set(mapWidth / 2f, mapHeight / 2f, 0);
+    private void centerCameraOnActiveChef() {
+        Chef activeChef = MapManager.getInstance().activeChef;
+        if (activeChef != null) {
+            camera.position.set(
+                activeChef.visualPos.x * GameConfig.TILE_SIZE, 
+                activeChef.visualPos.y * GameConfig.TILE_SIZE, 
+                0
+            );
+        } else {
+            int mapWidth = MapManager.getInstance().currentMap.getWidth() * GameConfig.TILE_SIZE;
+            int mapHeight = MapManager.getInstance().currentMap.getHeight() * GameConfig.TILE_SIZE;
+            camera.position.set(mapWidth / 2f, mapHeight / 2f, 0);
+        }
         camera.update();
     }
 
@@ -57,10 +69,10 @@ public class GameScreen extends ScreenAdapter {
         Chef activeChef = MapManager.getInstance().activeChef;
         if (activeChef == null) return;
 
-        float targetX = activeChef.getX() * GameConfig.TILE_SIZE;
-        float targetY = activeChef.getY() * GameConfig.TILE_SIZE;
+        float targetX = activeChef.visualPos.x * GameConfig.TILE_SIZE;
+        float targetY = activeChef.visualPos.y * GameConfig.TILE_SIZE;
 
-        float lerpSpeed = 5f * delta;
+        float lerpSpeed = GameConfig.CAMERA_LERP_SPEED * delta;
         camera.position.x += (targetX - camera.position.x) * lerpSpeed;
         camera.position.y += (targetY - camera.position.y) * lerpSpeed;
 
@@ -71,7 +83,7 @@ public class GameScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         viewport.update(width, height);
         hudRenderer.resize(width, height);
-        centerCameraOnMap();
+        centerCameraOnActiveChef();
     }
 
     @Override
@@ -81,11 +93,11 @@ public class GameScreen extends ScreenAdapter {
 
         updateCamera(delta);
 
-        NimonscookedGame.instance.batch.setProjectionMatrix(camera.combined);
-
         Gdx.gl.glClearColor(0.05f, 0.05f, 0.1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        NimonscookedGame.instance.batch.setProjectionMatrix(camera.combined);
+        
         NimonscookedGame.instance.batch.begin();
         worldRenderer.render(NimonscookedGame.instance.batch);
         NimonscookedGame.instance.batch.end();

@@ -111,11 +111,18 @@ public class MapManager {
         return Tile.TileType.FLOOR;
     }
 
+    // --- PERBAIKAN DI SINI ---
     private void spawnChef(int col, int row) {
-        Chef newChef = new Chef(col, row);
+        // Tentukan tipe chef: Jika genap (0) -> A, Ganjil (1) -> B
+        Chef.Type type = (chefs.size() % 2 == 0) ? Chef.Type.CHEF_A : Chef.Type.CHEF_B;
+        
+        // Panggil constructor baru dengan parameter Type
+        Chef newChef = new Chef(col, row, type);
+        
         chefs.add(newChef);
-        Gdx.app.log("MapManager", "Chef spawned at (" + col + ", " + row + ")");
+        Gdx.app.log("MapManager", "Spawned " + type + " at (" + col + ", " + row + ")");
     }
+    // -------------------------
 
     private void createDefaultMap() {
         Gdx.app.log("MapManager", "Creating default fallback map");
