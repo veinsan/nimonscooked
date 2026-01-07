@@ -15,6 +15,10 @@ public class Dish extends Item {
         this.componentCount = components.size();
     }
 
+    public void setTexture(String texturePath) {
+        this.textureName = texturePath;
+    }
+    
     public void setMatchedRecipe(String recipeName) {
         this.name = recipeName;
         this.textureName = getTextureForRecipe(recipeName);

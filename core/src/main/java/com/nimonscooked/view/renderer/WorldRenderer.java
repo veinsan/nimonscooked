@@ -41,6 +41,7 @@ public class WorldRenderer {
     
     private Animation<TextureRegion> smokeAnim;
     private Animation<TextureRegion> chopAnim;
+    private Animation<TextureRegion> washAnim;
     
     private Texture shadowTexture;
     private Texture snowTexture;
@@ -85,10 +86,15 @@ public class WorldRenderer {
 
         Texture chopSheet = resourceManager.getTexture("effects/chop.png");
         if (chopSheet != null) {
-            int FRAME_COLS = 4;
+            int FRAME_COLS = 3;
             TextureRegion[][] tmp = TextureRegion.split(chopSheet, chopSheet.getWidth() / FRAME_COLS, chopSheet.getHeight());
-            chopAnim = new Animation<>(0.1f, tmp[0]);
+            chopAnim = new Animation<>(0.15f, tmp[0]);
             chopAnim.setPlayMode(Animation.PlayMode.LOOP);
+        }
+        Texture washSheet = resourceManager.getTexture("effects/wash.png");
+        if (washSheet != null) {
+            washAnim = new Animation<>(0.2f, new TextureRegion(washSheet));
+            washAnim.setPlayMode(Animation.PlayMode.LOOP);
         }
     }
 
@@ -330,37 +336,44 @@ public class WorldRenderer {
                                     String itemTexName = item.getTextureName();
                                     
                                     if (!itemTexName.equals("EMPTY_PAN")) {
-                                        Texture itemTex = resourceManager.getTexture(itemTexName);
-                                        if (itemTex != null) {
-                                            float bob = (float)Math.sin(System.currentTimeMillis() / 200.0) * 2f;
+                                        float bob = (float)Math.sin(System.currentTimeMillis() / 200.0) * 2f;
+                                        
+                                        if (item instanceof com.nimonscooked.model.utensil.Plate) {
+                                            com.nimonscooked.model.utensil.Plate plate = (com.nimonscooked.model.utensil.Plate) item;
                                             
-                                            batch.draw(itemTex, col*size+10, row*size+20 + bob, size*0.6f, size*0.6f);
+                                            Texture plateTex = resourceManager.getTexture(plate.getTextureName());
+                                            if (plateTex != null) {
+                                                batch.draw(plateTex, col*size+10, row*size+20 + bob, size*0.6f, size*0.6f);
+                                            }
                                             
-                                            if (item instanceof com.nimonscooked.model.utensil.Plate) {
-                                                com.nimonscooked.model.utensil.Plate plate = (com.nimonscooked.model.utensil.Plate) item;
-                                                if (plate.getContainedDish() != null) {
-                                                    Texture dishTex = resourceManager.getTexture(plate.getContainedDish().getTextureName());
-                                                    if (dishTex != null) {
-                                                        batch.draw(dishTex, col*size+10, row*size+25 + bob, size*0.6f, size*0.6f);
-                                                    }
+                                            if (plate.getContainedDish() != null) {
+                                                com.nimonscooked.model.dish.Dish dish = plate.getContainedDish();
+                                                String dishTexName = dish.getTextureName();
+                                                
+                                                Texture dishTex = resourceManager.getTexture(dishTexName);
+                                                if (dishTex != null) {
+                                                    batch.draw(dishTex, col*size+12, row*size+25 + bob, size*0.55f, size*0.55f);
                                                 }
                                             }
                                             
-                                            renderIngredientPopup(batch, col*size, row*size + bob, s.getItem());
+                                            renderIngredientPopup(batch, col*size, row*size + bob, item);
+                                        } else {
+                                            Texture itemTex = resourceManager.getTexture(itemTexName);
+                                            if (itemTex != null) {
+                                                batch.draw(itemTex, col*size+10, row*size+20 + bob, size*0.6f, size*0.6f);
+                                                renderIngredientPopup(batch, col*size, row*size + bob, item);
+                                            }
                                         }
                                     }
                                 }
                                 else if (s instanceof PlateStorage) {
                                     PlateStorage ps = (PlateStorage) s;
-                                    com.nimonscooked.model.utensil.Plate topPlate = ps.peekTopPlate();
                                     
-                                    if (topPlate != null) {
-                                        String plateTexName = topPlate.isClean() ? "items/plate.png" : "items/plate_dirty.png";
-                                        Texture plateTex = resourceManager.getTexture(plateTexName);
-                                        
-                                        if (plateTex != null) {
+                                    if (ps.hasDirtyPlates()) {
+                                        Texture dirtyPlateTex = resourceManager.getTexture("items/plate_dirty.png");
+                                        if (dirtyPlateTex != null) {
                                             float bob = (float)Math.sin(System.currentTimeMillis() / 500.0) * 2f;
-                                            batch.draw(plateTex, col * size + 10, row * size + 20 + bob, size * 0.7f, size * 0.7f);
+                                            batch.draw(dirtyPlateTex, col * size + 10, row * size + 20 + bob, size * 0.7f, size * 0.7f);
                                         }
                                     }
                                 }
@@ -423,8 +436,24 @@ public class WorldRenderer {
                                         progress = prog; 
                                         showBar = true; 
                                     }
+                                    
+                                    if (ws.isActive() && washAnim != null) {
+                                        TextureRegion frame = washAnim.getKeyFrame(stateTime, true);
+                                        float effectSize = 64f;
+                                        float effectX = col * size + (size - effectSize) / 2f;
+                                        float effectY = row * size + size - 20;
+                                        
+                                        float bobAmount = 2f;
+                                        float bobSpeed = 3f;
+                                        float bobOffset = (float)Math.sin(stateTime * bobSpeed) * bobAmount;
+                                        
+                                        effectY += bobOffset;
+                                        
+                                        batch.setColor(1f, 1f, 1f, 0.8f);
+                                        batch.draw(frame, effectX, effectY, effectSize, effectSize);
+                                        batch.setColor(1f, 1f, 1f, 1f);
+                                    }
                                 }
-
                                 if (showBar) {
                                     drawProgressBar(batch, col * size + 12, row * size + size + 5, progress, false);
                                 }
@@ -593,27 +622,36 @@ public class WorldRenderer {
             }
             
             batch.setColor(1, 1, 1, 1);
-            
+                        
             if (c.getInventory() != null) {
                 Item item = c.getInventory();
-                Texture itemTex = resourceManager.getTexture(item.getTextureName());
+                float bob = (float)Math.sin(c.stateTime * 5f) * 3f;
                 
-                if (itemTex != null) {
-                    float bob = (float)Math.sin(c.stateTime * 5f) * 3f;
+                if (item instanceof com.nimonscooked.model.utensil.Plate) {
+                    com.nimonscooked.model.utensil.Plate plate = (com.nimonscooked.model.utensil.Plate) item;
                     
-                    batch.draw(itemTex, drawX + size/2, drawY + scaledSize - 10 + bob, size*0.5f, size*0.5f);
+                    Texture plateTex = resourceManager.getTexture(plate.getTextureName());
+                    if (plateTex != null) {
+                        batch.draw(plateTex, drawX + size/2, drawY + scaledSize - 10 + bob, size*0.5f, size*0.5f);
+                    }
                     
-                    if (item instanceof com.nimonscooked.model.utensil.Plate) {
-                        com.nimonscooked.model.utensil.Plate plate = (com.nimonscooked.model.utensil.Plate) item;
-                        if (plate.getContainedDish() != null) {
-                            Texture dishTex = resourceManager.getTexture(plate.getContainedDish().getTextureName());
-                            if (dishTex != null) {
-                                batch.draw(dishTex, drawX + size/2, drawY + scaledSize - 5 + bob, size*0.5f, size*0.5f);
-                            }
+                    if (plate.getContainedDish() != null) {
+                        com.nimonscooked.model.dish.Dish dish = plate.getContainedDish();
+                        String dishTexName = dish.getTextureName();
+                        
+                        Texture dishTex = resourceManager.getTexture(dishTexName);
+                        if (dishTex != null) {
+                            batch.draw(dishTex, drawX + size/2 + 2, drawY + scaledSize - 5 + bob, size*0.45f, size*0.45f);
                         }
                     }
-
-                    renderIngredientPopup(batch, drawX, drawY + bob + 10, c.getInventory());
+                    
+                    renderIngredientPopup(batch, drawX, drawY + bob + 10, item);
+                } else {
+                    Texture itemTex = resourceManager.getTexture(item.getTextureName());
+                    if (itemTex != null) {
+                        batch.draw(itemTex, drawX + size/2, drawY + scaledSize - 10 + bob, size*0.5f, size*0.5f);
+                        renderIngredientPopup(batch, drawX, drawY + bob + 10, item);
+                    }
                 }
             }
             

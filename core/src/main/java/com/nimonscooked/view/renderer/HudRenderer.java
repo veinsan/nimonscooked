@@ -75,6 +75,8 @@ public class HudRenderer {
         renderDashCooldown();
 
         batch.end();
+
+        font.getData().setScale(1f);
     }
 
     private void renderOrders() {

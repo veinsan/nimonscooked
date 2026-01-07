@@ -2,16 +2,18 @@ package com.nimonscooked.model.station;
 
 import com.badlogic.gdx.Gdx;
 import com.nimonscooked.manager.AudioManager;
+import com.nimonscooked.manager.GameManager;
 import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.utensil.Plate;
 
 public class WashingStation extends Station {
 
-    private float holdProgress = 0f;
+    private float washProgress = 0f;
     private static final float WASH_DURATION = 3.0f;
-    private boolean hasPlayedSound = false;
-    private boolean isBeingHeld = false;
+    private boolean hasSoundPlayed = false;
+    private boolean isWashing = false;
+    private Chef assignedChef = null;
 
     public WashingStation(String id, float x, float y) {
         super(id, x, y, 64, 64);
@@ -27,62 +29,91 @@ public class WashingStation extends Station {
             if (!plate.isClean()) {
                 this.setItem(plate);
                 chef.setInventory(null);
-                this.holdProgress = 0f;
-                Gdx.app.log("WashingStation", "Placed dirty plate");
+                this.washProgress = 0f;
+                startAutoWash(chef);
+                Gdx.app.log("WashingStation", "Auto-wash started!");
             }
         } 
         else if (heldItem == null && stationItem instanceof Plate) {
             Plate plate = (Plate) stationItem;
             
-            if (plate.isClean() && !isBeingHeld) {
+            if (plate.isClean() && !isWashing) {
                 chef.setInventory(plate);
                 this.setItem(null);
-                this.holdProgress = 0f;
+                this.washProgress = 0f;
                 Gdx.app.log("WashingStation", "Took clean plate");
             }
         }
     }
 
+    private void startAutoWash(Chef chef) {
+        this.isWashing = true;
+        this.assignedChef = chef;
+        this.washProgress = 0f;
+        this.hasSoundPlayed = false;
+        
+        chef.setBusy(true);
+
+        Runnable washingTask = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (!hasSoundPlayed) {
+                        AudioManager.getInstance().playSound("sfx/wash.mp3");
+                        hasSoundPlayed = true;
+                    }
+
+                    long startTime = System.currentTimeMillis();
+                    long duration = (long)(WASH_DURATION * 1000);
+
+                    while (System.currentTimeMillis() - startTime < duration) {
+                        if (Thread.interrupted()) {
+                            return;
+                        }
+                        washProgress = (System.currentTimeMillis() - startTime) / (float)duration;
+                        Thread.sleep(16);
+                    }
+
+                    washProgress = 1f;
+
+                    Gdx.app.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            Item stationItem = getItem();
+                            if (stationItem instanceof Plate) {
+                                ((Plate) stationItem).setClean(true);
+                                Gdx.app.log("WashingStation", "Plate is now clean!");
+                            }
+                            
+                            isWashing = false;
+                            washProgress = 0f;
+                            hasSoundPlayed = false;
+
+                            if (assignedChef != null) {
+                                assignedChef.setBusy(false);
+                                assignedChef = null;
+                            }
+                        }
+                    });
+
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        };
+
+        GameManager.getThreadPool().execute(washingTask);
+    }
+
     @Override
     public void processHold(Chef chef, float delta) {
-        Item stationItem = this.getItem();
-        
-        if (stationItem instanceof Plate && chef.getInventory() == null) {
-            Plate plate = (Plate) stationItem;
-            
-            if (!plate.isClean()) {
-                isBeingHeld = true;
-                chef.setBusy(true);
-                holdProgress += delta;
-                
-                if (!hasPlayedSound) {
-                    AudioManager.getInstance().playSound("sfx/trash.wav");
-                    hasPlayedSound = true;
-                }
-                
-                if (holdProgress >= WASH_DURATION) {
-                    plate.setClean(true);
-                    holdProgress = 0f;
-                    hasPlayedSound = false;
-                    isBeingHeld = false;
-                    chef.setBusy(false);
-                    Gdx.app.log("WashingStation", "Plate is now clean!");
-                }
-            }
-        } else {
-            if (isBeingHeld) {
-                isBeingHeld = false;
-                hasPlayedSound = false;
-                chef.setBusy(false);
-            }
-        }
     }
 
     public boolean isActive() {
-        return isBeingHeld;
+        return isWashing;
     }
 
     public float getProgress() {
-        return Math.min(1f, holdProgress / WASH_DURATION);
+        return Math.min(1f, washProgress);
     }
 }

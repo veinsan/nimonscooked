@@ -1,11 +1,15 @@
 package com.nimonscooked.model.utensil;
 
+import com.nimonscooked.model.dish.Dish;
+
 public class Plate extends KitchenUtensil {
     private boolean isClean;
+    private Dish containedDish;
 
     public Plate() {
         super("Plate", "items/plate.png");
         this.isClean = true;
+        this.containedDish = null;
     }
 
     public boolean isClean() {
@@ -15,6 +19,18 @@ public class Plate extends KitchenUtensil {
     public void setClean(boolean clean) {
         this.isClean = clean;
         updateTexture();
+    }
+
+    public Dish getContainedDish() {
+        return containedDish;
+    }
+
+    public void setContainedDish(Dish dish) {
+        this.containedDish = dish;
+    }
+
+    public boolean isEmpty() {
+        return containedDish == null;
     }
 
     private void updateTexture() {

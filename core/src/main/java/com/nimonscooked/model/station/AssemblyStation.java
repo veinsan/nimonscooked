@@ -10,6 +10,7 @@ import com.nimonscooked.model.entity.Chef;
 import com.nimonscooked.model.item.Ingredient;
 import com.nimonscooked.model.item.Item;
 import com.nimonscooked.model.recipe.Recipe;
+import com.nimonscooked.model.utensil.Plate;
 
 public class AssemblyStation extends Station {
 
@@ -25,7 +26,19 @@ public class AssemblyStation extends Station {
         Item heldItem = chef.getInventory();
         Item stationItem = this.getItem();
 
-        if (heldItem != null && stationItem == null) {
+        if (heldItem instanceof Plate && stationItem instanceof Dish) {
+            handlePlatingDish(chef, (Plate) heldItem, (Dish) stationItem);
+        }
+        else if (heldItem instanceof Plate && stationItem instanceof Ingredient) {
+            handlePlatingIngredient(chef, (Plate) heldItem, (Ingredient) stationItem);
+        }
+        else if (heldItem instanceof Dish && stationItem instanceof Plate) {
+            handleDishToPlate(chef, (Dish) heldItem, (Plate) stationItem);
+        }
+        else if (heldItem instanceof Ingredient && stationItem instanceof Plate) {
+            handleIngredientToPlate(chef, (Ingredient) heldItem, (Plate) stationItem);
+        }
+        else if (heldItem != null && stationItem == null) {
             this.setItem(heldItem);
             chef.setInventory(null);
             Gdx.app.log("AssemblyStation", "Placed " + heldItem.getDisplayName());
@@ -35,41 +48,116 @@ public class AssemblyStation extends Station {
             this.setItem(null);
             Gdx.app.log("AssemblyStation", "Took " + stationItem.getDisplayName());
         } 
-        else if (heldItem instanceof Ingredient && stationItem != null) {
-            Item result = combine(stationItem, heldItem);
-            if (result != null) {
-                this.setItem(result);
-                chef.setInventory(null);
-                Gdx.app.log("AssemblyStation", "Combined item into: " + result.getDisplayName());
-            }
+        else if (heldItem instanceof Ingredient && stationItem instanceof Dish) {
+            handleAddIngredientToDish(chef, (Ingredient) heldItem, (Dish) stationItem);
         }
-        else if (heldItem instanceof com.nimonscooked.model.utensil.Plate && stationItem instanceof Dish) {
-            com.nimonscooked.model.utensil.Plate plate = (com.nimonscooked.model.utensil.Plate) heldItem;
-        
-            if (!plate.isClean()) {
-                 Gdx.app.log("AssemblyStation", "FAIL: Cannot plate on dirty plate!");
-                 return;
-            }
-            
-            if (plate.getContainedDish() == null) {
-                plate.setContainedDish((Dish) stationItem);
-                this.setItem(null); 
-                Gdx.app.log("AssemblyStation", "Plated " + plate.getContainedDish().getDisplayName());
-            }
+        else if (heldItem instanceof Ingredient && stationItem instanceof Ingredient) {
+            handleCombineIngredients(chef, (Ingredient) heldItem, (Ingredient) stationItem);
         }
     }
-    private Item combine(Item base, Item added) {
-        List<Item> components = new ArrayList<>();
 
-        if (base instanceof Dish) {
-            components.addAll(((Dish) base).getComponents());
-        } else if (base instanceof Ingredient) {
-            components.add(base);
+    private void handlePlatingDish(Chef chef, Plate plate, Dish dish) {
+        if (!plate.isClean()) {
+            Gdx.app.log("AssemblyStation", "FAIL: Cannot use dirty plate!");
+            return;
         }
 
-        components.add(added);
-        Dish potentialDish = new Dish("Unfinished Dish", components);
-        return tryAssemble(potentialDish);
+        if (plate.getContainedDish() != null) {
+            Gdx.app.log("AssemblyStation", "FAIL: Plate already has food!");
+            return;
+        }
+
+        plate.setContainedDish(dish);
+        this.setItem(null);
+        Gdx.app.log("AssemblyStation", "Plated " + dish.getDisplayName());
+    }
+
+    private void handlePlatingIngredient(Chef chef, Plate plate, Ingredient ingredient) {
+        if (!plate.isClean()) {
+            Gdx.app.log("AssemblyStation", "FAIL: Cannot use dirty plate!");
+            return;
+        }
+
+        if (plate.getContainedDish() != null) {
+            List<Item> components = new ArrayList<>(plate.getContainedDish().getComponents());
+            components.add(ingredient);
+            Dish newDish = new Dish("Unfinished Dish", components);
+            newDish = (Dish) tryAssemble(newDish);
+            plate.setContainedDish(newDish);
+            this.setItem(null);
+            Gdx.app.log("AssemblyStation", "Added ingredient to plate");
+        } else {
+            List<Item> components = new ArrayList<>();
+            components.add(ingredient);
+            Dish newDish = new Dish("Unfinished Dish", components);
+            newDish = (Dish) tryAssemble(newDish);
+            plate.setContainedDish(newDish);
+            this.setItem(null);
+            Gdx.app.log("AssemblyStation", "Placed ingredient on plate");
+        }
+    }
+
+    private void handleDishToPlate(Chef chef, Dish dish, Plate plate) {
+        if (!plate.isClean()) {
+            Gdx.app.log("AssemblyStation", "FAIL: Plate on station is dirty!");
+            return;
+        }
+
+        if (plate.getContainedDish() != null) {
+            Gdx.app.log("AssemblyStation", "FAIL: Plate already has food!");
+            return;
+        }
+
+        plate.setContainedDish(dish);
+        chef.setInventory(plate);
+        this.setItem(null);
+        Gdx.app.log("AssemblyStation", "Moved dish to plate in hand");
+    }
+
+    private void handleIngredientToPlate(Chef chef, Ingredient ingredient, Plate plate) {
+        if (!plate.isClean()) {
+            Gdx.app.log("AssemblyStation", "FAIL: Plate on station is dirty!");
+            return;
+        }
+
+        if (plate.getContainedDish() != null) {
+            List<Item> components = new ArrayList<>(plate.getContainedDish().getComponents());
+            components.add(ingredient);
+            Dish newDish = new Dish("Unfinished Dish", components);
+            newDish = (Dish) tryAssemble(newDish);
+            plate.setContainedDish(newDish);
+            chef.setInventory(null);
+            Gdx.app.log("AssemblyStation", "Added ingredient to plate on station");
+        } else {
+            List<Item> components = new ArrayList<>();
+            components.add(ingredient);
+            Dish newDish = new Dish("Unfinished Dish", components);
+            newDish = (Dish) tryAssemble(newDish);
+            plate.setContainedDish(newDish);
+            chef.setInventory(null);
+            Gdx.app.log("AssemblyStation", "Placed ingredient on plate on station");
+        }
+    }
+
+    private void handleAddIngredientToDish(Chef chef, Ingredient ingredient, Dish dish) {
+        List<Item> components = new ArrayList<>(dish.getComponents());
+        components.add(ingredient);
+        Dish newDish = new Dish("Unfinished Dish", components);
+        newDish = (Dish) tryAssemble(newDish);
+        this.setItem(newDish);
+        chef.setInventory(null);
+        Gdx.app.log("AssemblyStation", "Added ingredient to dish");
+    }
+
+    private void handleCombineIngredients(Chef chef, Ingredient held, Ingredient station) {
+        List<Item> components = new ArrayList<>();
+        components.add(station);
+        components.add(held);
+        Dish newDish = new Dish("Unfinished Dish", components);
+        newDish = (Dish) tryAssemble(newDish);
+        this.setItem(newDish);
+        chef.setInventory(null);
+        Gdx.app.log("AssemblyStation", "Combined ingredients into dish");
     }
 
     public Item tryAssemble(Item input) {
@@ -93,6 +181,11 @@ public class AssemblyStation extends Station {
         Item current = this.getItem();
         if (current instanceof Dish) {
             return new ArrayList<>(((Dish) current).getComponents());
+        } else if (current instanceof Plate) {
+            Plate plate = (Plate) current;
+            if (plate.getContainedDish() != null) {
+                return new ArrayList<>(plate.getContainedDish().getComponents());
+            }
         }
         return Collections.emptyList();
     }

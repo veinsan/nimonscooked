@@ -49,8 +49,16 @@ public class PlateStorage extends Station {
         Gdx.app.log("PlateStorage", "Dirty plate returned! Total: " + plateStack.size());
     }
     
-    public Plate peekTopPlate() {
-        if (plateStack.isEmpty()) return null;
-        return plateStack.peek();
+    public boolean hasDirtyPlates() {
+        for (Plate plate : plateStack) {
+            if (!plate.isClean()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public int getPlateCount() {
+        return plateStack.size();
     }
 }

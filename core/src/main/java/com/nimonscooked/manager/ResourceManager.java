@@ -102,10 +102,12 @@ public class ResourceManager implements Disposable {
         loadSound("sfx/trash.wav");
         loadSound("sfx/click.mp3");
         loadSound("sfx/hover.mp3");
+        loadSound("sfx/wash.mp3");
+
 
         loadTexture("effects/smoke.png");
         loadTexture("effects/chop.png");
-
+        loadTexture("effects/wash.png");
 
         assetManager.finishLoading();
     }

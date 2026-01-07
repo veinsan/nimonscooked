@@ -1,0 +1,18 @@
+{
+  "platform": "windows64",
+  "jdk": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.7%2B7/OpenJDK17U-jdk_x64_windows_hotspot_17.0.7_7.zip",
+  "executable": "Gastropath",
+  "classpath": [
+    "lwjgl3/build/libs/nimonscooked-1.0.0.jar"
+  ],
+  "mainclass": "com.nimonscooked.lwjgl3.Lwjgl3Launcher",
+  "vmargs": [
+    "Xmx2G"
+  ],
+  "resources": [
+    "assets"
+  ],
+  "minimizejre": "soft",
+  "output": "dist/windows",
+  "icon": "icon.ico"
+}

@@ -29,15 +29,14 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.TimeUtils;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.nimonscooked.NimonscookedGame;
-import com.nimonscooked.config.GameConfig;
 import com.nimonscooked.manager.AudioManager;
 import com.nimonscooked.manager.ResourceManager;
 
 public class MainMenuScreen extends ScreenAdapter {
 
     private Stage stage;
+    private Stage backgroundStage;
     private Skin skin;
     private BitmapFont customFont;
 
@@ -80,7 +79,8 @@ public class MainMenuScreen extends ScreenAdapter {
     private static final long CLICK_BLOCK_DURATION = 200;
 
     public MainMenuScreen() {
-        stage = new Stage(new ScreenViewport());
+        backgroundStage = new Stage(new com.badlogic.gdx.utils.viewport.StretchViewport(1920, 1080));
+        stage = new Stage(new com.badlogic.gdx.utils.viewport.FitViewport(1920, 1080));
         skin = ResourceManager.getInstance().getSkin();
         customFont = ResourceManager.getInstance().getCustomFont();
         menuButtons = new Array<>();
@@ -132,6 +132,10 @@ public class MainMenuScreen extends ScreenAdapter {
         Gdx.input.setCursorCatched(false);
         AudioManager.getInstance().playMusic("music/bgm_menu.mp3");
 
+        if (customFont != null) {
+            customFont.getData().setScale(1f);
+        }
+        
         rebuildUI();
 
         fadeAlpha = 0f;
@@ -141,6 +145,7 @@ public class MainMenuScreen extends ScreenAdapter {
     }
 
     private void rebuildUI() {
+        backgroundStage.clear();
         stage.clear();
         menuButtons.clear();
 
@@ -149,7 +154,7 @@ public class MainMenuScreen extends ScreenAdapter {
             backgroundImage = new Image(bgTexture);
             backgroundImage.setFillParent(true);
             backgroundImage.setScaling(Scaling.fill);
-            stage.addActor(backgroundImage);
+            backgroundStage.addActor(backgroundImage);
         }
 
         overlayDim = new Image(darkOverlayDrawable);
@@ -403,7 +408,7 @@ public class MainMenuScreen extends ScreenAdapter {
                 if (fullScreenCheck.isChecked()) {
                     Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
                 } else {
-                    Gdx.graphics.setWindowedMode(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT);
+                    Gdx.graphics.setWindowedMode(1280, 720);
                 }
                 resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             }
@@ -646,38 +651,43 @@ public class MainMenuScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0.05f, 0.05f, 0.1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        backgroundStage.act(delta);
+        backgroundStage.draw();
+
         stage.act(delta);
         stage.draw();
     }
 
     @Override
     public void resize(int width, int height) {
+        backgroundStage.getViewport().update(width, height, false);
         stage.getViewport().update(width, height, true);
+        
+        float viewportWidth = stage.getViewport().getWorldWidth();
+        float viewportHeight = stage.getViewport().getWorldHeight();
 
         if (optionsTable != null) {
             optionsTable.setPosition(
-                (stage.getWidth() - 1000) / 2f,
-                (stage.getHeight() - 750) / 2f
+                (viewportWidth - 1000) / 2f,
+                (viewportHeight - 750) / 2f
             );
         }
 
         if (howToPlayTable != null) {
             howToPlayTable.setPosition(
-                (stage.getWidth() - 1100) / 2f,
-                (stage.getHeight() - 800) / 2f
+                (viewportWidth - 1100) / 2f,
+                (viewportHeight - 800) / 2f
             );
         }
 
         if (transitionLabel != null) {
-            transitionLabel.setPosition(
-                (stage.getWidth() - transitionLabel.getPrefWidth() * 2.5f) / 2f,
-                stage.getHeight() / 2f
-            );
+            transitionLabel.setPosition(40f, 40f);
         }
     }
 
     @Override
     public void dispose() {
-        stage.dispose();
+        if (backgroundStage != null) backgroundStage.dispose();
+        if (stage != null) stage.dispose();
     }
 }
